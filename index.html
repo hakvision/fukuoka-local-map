@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>후쿠오카 맛집 지도</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#111827; --line:#243041; --text:#f8fafc; --sub:#cbd5e1; --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+    body{min-height:100vh}
+    .app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
+    .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto}
+    h1{margin:0 0 8px;font-size:24px}
+    .desc{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:12px}
+    .status{font-size:12px;color:#93c5fd;margin-bottom:10px}
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+    .pill{padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--sub);background:#0f172a}
+    .detail{border:1px solid var(--line);background:#0f172a;border-radius:16px;padding:14px;margin-bottom:14px}
+    .detail h2{margin:0 0 6px;font-size:18px}
+    .meta{font-size:12px;color:#93c5fd;margin-bottom:8px}
+    .summary{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:10px}
+    .badge{display:inline-block;font-size:11px;padding:4px 8px;border-radius:999px;background:#1e293b;color:#fde68a;border:1px solid #475569}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:9px 12px;border-radius:10px;font-size:13px;border:1px solid rgba(56,189,248,.35);background:#082f49;color:#e0f2fe}
+    .btn.secondary{border-color:rgba(34,197,94,.35);background:#14532d;color:#dcfce7}
+    .places{display:flex;flex-direction:column;gap:10px}
+    .place{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer}
+    .place.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(56,189,248,.18) inset}
+    .place:hover{background:#0f172a}
+    .place .name{font-weight:800;font-size:15px;margin-bottom:5px}
+    .place .sub{font-size:12px;color:#93c5fd;margin-bottom:6px}
+    .place .mini{font-size:12px;color:var(--sub);line-height:1.45}
+    .main{display:grid;grid-template-rows:1fr 280px;min-height:100vh}
+    #map{height:100%;width:100%}
+    .gmaps-wrap{border-top:1px solid var(--line);background:#020617;display:flex;flex-direction:column}
+    .gmaps-head{padding:10px 14px;font-size:13px;color:var(--sub);border-bottom:1px solid var(--line)}
+    #gmaps-frame{width:100%;height:100%;border:0;background:#0f172a}
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0f172a;color:var(--text)}
+    .popup-title{font-weight:800;margin-bottom:6px}
+    .popup-desc{font-size:13px;color:var(--sub);line-height:1.45;margin-bottom:8px}
+    @media (max-width: 900px){
+      .app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}
+      .sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}
+      .main{order:2;grid-template-rows:58vh 320px;min-height:unset}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>후쿠오카 맛집 지도</h1>
+      <div class="desc">15개 맛집을 지도에 표시하고, 클릭하면 설명/구글맵 미리보기/바로열기를 볼 수 있게 만든 로컬 웹앱입니다.</div>
+      <div id="status" class="status">초기화 중…</div>
+      <div class="legend">
+        <span class="pill">🍜 라멘</span>
+        <span class="pill">🍲 모츠나베</span>
+        <span class="pill">🥩 함바그·돈카츠</span>
+        <span class="pill">🍛 카레</span>
+        <span class="pill">🍶 이자카야·야타이</span>
+      </div>
+
+      <section class="detail">
+        <h2 id="detail-name">맛집 선택</h2>
+        <div id="detail-meta" class="meta">지도를 누르거나 목록에서 가게를 선택하세요.</div>
+        <div id="detail-desc" class="summary">선택한 가게의 대략적인 설명과 구글맵 연결을 보여줍니다.</div>
+        <div id="detail-badge" class="badge">위치 상태: 준비 중</div>
+        <div class="actions">
+          <a id="detail-open" class="btn" href="#" target="_blank" rel="noopener">Google Maps 열기</a>
+          <a id="detail-focus" class="btn secondary" href="#">지도에서 보기</a>
+        </div>
+      </section>
+
+      <section id="places" class="places"></section>
+    </aside>
+
+    <main class="main">
+      <div id="map"></div>
+      <div class="gmaps-wrap">
+        <div class="gmaps-head">선택한 가게의 Google Maps 미리보기</div>
+        <iframe id="gmaps-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const places = [
+      {id:'gomasabaya', name:'하카타 고마사바야', type:'🐟 고마사바', district:'하카타', desc:'후쿠오카 대표 메뉴인 고마사바(참깨 양념 고등어회) 계열로 보이는 집.', query:'하카타 고마사바야 후쿠오카', geocodeQueries:['博多ごまさば屋 福岡','博多 ごまさば屋 福岡'], approx:[33.5907,130.4200]},
+      {id:'makoto', name:'마코토', type:'🍽️ 일반 식당', district:'확인 필요', desc:'이름만으로 업종이 애매해 현장 검색 확인이 필요한 가게.', query:'마코토 후쿠오카', geocodeQueries:['まこと 福岡 restaurant','マコト 福岡 restaurant'], approx:[33.5860,130.3995]},
+      {id:'tashu', name:'모츠나베 타슈', type:'🍲 모츠나베', district:'텐진·다이묘 추정', desc:'후쿠오카식 곱창전골 모츠나베로 알려진 계열의 가게.', query:'모츠나베 타슈 후쿠오카', geocodeQueries:['もつ鍋 田しゅ 福岡','田しゅ 大名 福岡'], approx:[33.5882,130.3958]},
+      {id:'hacchan', name:'핫짱라멘', type:'🍜 라멘', district:'텐진·와타나베도리', desc:'진한 돈코츠 계열로 많이 알려진 후쿠오카 로컬 라멘집.', query:'핫짱라멘 후쿠오카', geocodeQueries:['八ちゃんラーメン 福岡'], approx:[33.5815466,130.4037583], exact:[33.5815466,130.4037583]},
+      {id:'yoshida', name:'돈카츠 요시다', type:'🥩 돈카츠', district:'확인 필요', desc:'돈카츠·정식 계열로 보이는 가게. 표기 변형 가능성 있음.', query:'돈카츠 요시다 후쿠오카', geocodeQueries:['とんかつ よし田 福岡','よし田 福岡 とんかつ'], approx:[33.5900,130.4020]},
+      {id:'kiwamiya', name:'키와미야 함바그', type:'🥩 함바그', district:'하카타', desc:'직접 구워먹는 함바그 스테이크로 유명한 후쿠오카 대표 맛집.', query:'키와미야 함바그 후쿠오카', geocodeQueries:['極味や 福岡'], approx:[33.591721,130.4197822], exact:[33.591721,130.4197822]},
+      {id:'kego-yakiton', name:'케고 야키톤', type:'🍶 야키톤', district:'케고 추정', desc:'돼지 꼬치구이·이자카야 계열로 보이는 가게.', query:'케고 야키톤 후쿠오카', geocodeQueries:['警固 焼きとん 福岡','焼きとん 警固 福岡'], approx:[33.5867,130.3928]},
+      {id:'pizza-rocco', name:'피자로코', type:'🍕 피자', district:'다이묘·야쿠인 추정', desc:'피자 전문점 계열로 보이는 가게.', query:'피자로코 후쿠오카', geocodeQueries:['Pizza Rocco Fukuoka','ピザロッコ 福岡'], approx:[33.5848,130.3971]},
+      {id:'asako', name:'아사코', type:'🍽️ 일반 식당', district:'확인 필요', desc:'이름만으로 업종 판단이 어려운 가게.', query:'아사코 후쿠오카', geocodeQueries:['あさこ 福岡 restaurant'], approx:[33.5895,130.3970]},
+      {id:'inadaya', name:'이나다야 선', type:'🍽️ 일반 식당', district:'확인 필요', desc:'브랜드명 또는 지점명이 함께 붙은 가게일 가능성이 있습니다.', query:'이나다야 선 후쿠오카', geocodeQueries:['稲田屋 SUN 福岡','いな田屋 SUN 福岡'], approx:[33.5904,130.4055]},
+      {id:'uochu', name:'우오츄', type:'🐟 해산물', district:'이마이즈미', desc:'생선·해산물 중심일 가능성이 높은 가게.', query:'우오츄 후쿠오카', geocodeQueries:['魚忠 福岡'], approx:[33.5853624,130.3976949], exact:[33.5853624,130.3976949]},
+      {id:'yatai-mune', name:'야타이 무네', type:'🍶 야타이', district:'나카스·강변 추정', desc:'후쿠오카 포장마차(야타이) 스타일로 보이는 가게.', query:'야타이 무네 후쿠오카', geocodeQueries:['屋台むね 福岡'], approx:[33.5925,130.4012]},
+      {id:'shinkawabashi', name:'로바타 신가와바시', type:'🔥 로바타', district:'나카스 인근 추정', desc:'숯불구이·해산물 중심 로바타야키 계열로 보이는 가게.', query:'로바타 신가와바시 후쿠오카', geocodeQueries:['炉端 新川橋 福岡'], approx:[33.5888,130.4088]},
+      {id:'garam', name:'GARAM', type:'🍛 카레', district:'다이묘·아카사카 추정', desc:'향신료 카레 계열 후보 가게.', query:'GARAM 후쿠오카 카레', geocodeQueries:['GARAM 福岡 カレー','ガラム 福岡 カレー'], approx:[33.5900,130.3922]},
+      {id:'vox', name:'스파이스카레 복스', type:'🍛 스파이스 카레', district:'아카사카·야쿠인 추정', desc:'향신료 카레 전문점으로 보이는 가게.', query:'스파이스카레 복스 후쿠오카', geocodeQueries:['スパイスカレーVOX 福岡','Spice Curry VOX Fukuoka'], approx:[33.5842,130.3918]}
+    ].map(p => ({
+      ...p,
+      mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.query)}`,
+      embedUrl:`https://maps.google.com/maps?q=${encodeURIComponent(p.query)}&z=16&output=embed`,
+      loc:p.exact || p.approx,
+      resolved:!!p.exact,
+      accuracy:p.exact ? '정확' : '대략'
+    }));
+
+    const map = L.map('map', {zoomControl:true}).setView([33.5892,130.4017], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+
+    const statusEl = document.getElementById('status');
+    const placesEl = document.getElementById('places');
+    const detailName = document.getElementById('detail-name');
+    const detailMeta = document.getElementById('detail-meta');
+    const detailDesc = document.getElementById('detail-desc');
+    const detailBadge = document.getElementById('detail-badge');
+    const detailOpen = document.getElementById('detail-open');
+    const detailFocus = document.getElementById('detail-focus');
+    const gmapsFrame = document.getElementById('gmaps-frame');
+
+    const markers = new Map();
+    const cards = new Map();
+    let selectedId = null;
+
+    const bounds = L.latLngBounds([]);
+
+    function badgeText(place){ return `위치 상태: ${place.accuracy} ${place.resolved ? '매칭' : '표기 기준 임시 배치'}`; }
+
+    function popupHtml(place){
+      return `<div class="popup-title">${place.name}</div>
+              <div class="popup-desc">${place.type} · ${place.district}</div>
+              <div class="popup-desc">${place.desc}</div>
+              <a class="btn" href="${place.mapsUrl}" target="_blank" rel="noopener">Google Maps 열기</a>`;
+    }
+
+    function renderCards(){
+      placesEl.innerHTML='';
+      places.forEach(place => {
+        const div = document.createElement('div');
+        div.className = 'place';
+        div.innerHTML = `<div class="name">${place.name}</div>
+                         <div class="sub">${place.type} · ${place.district}</div>
+                         <div class="mini">${place.desc}</div>`;
+        div.addEventListener('click', () => selectPlace(place.id, true));
+        placesEl.appendChild(div);
+        cards.set(place.id, div);
+      });
+    }
+
+    function renderMarkers(){
+      places.forEach(place => {
+        const color = place.resolved ? '#22c55e' : '#f59e0b';
+        const icon = L.divIcon({
+          className:'custom-pin',
+          html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`,
+          iconSize:[18,18],
+          iconAnchor:[9,9]
+        });
+        const marker = L.marker(place.loc, {icon}).addTo(map).bindPopup(popupHtml(place));
+        marker.on('click', () => selectPlace(place.id, false));
+        markers.set(place.id, marker);
+        bounds.extend(place.loc);
+      });
+      map.fitBounds(bounds.pad(0.18));
+    }
+
+    function selectPlace(id, pan=true){
+      const place = places.find(p => p.id === id);
+      if(!place) return;
+      selectedId = id;
+      detailName.textContent = place.name;
+      detailMeta.textContent = `${place.type} · ${place.district}`;
+      detailDesc.textContent = place.desc;
+      detailBadge.textContent = badgeText(place);
+      detailOpen.href = place.mapsUrl;
+      detailFocus.onclick = (e) => { e.preventDefault(); focusPlace(place.id); };
+      gmapsFrame.src = place.embedUrl;
+      cards.forEach((el,k) => el.classList.toggle('active', k===id));
+      if (pan) focusPlace(id);
+    }
+
+    function focusPlace(id){
+      const marker = markers.get(id);
+      if(!marker) return;
+      map.setView(marker.getLatLng(), 16, {animate:true});
+      marker.openPopup();
+    }
+
+    async function geocodeOne(place){
+      if (place.resolved) return true;
+      for (const q of place.geocodeQueries){
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ja,ko&q=${encodeURIComponent(q)}`;
+        try {
+          const res = await fetch(url, {headers:{'Accept':'application/json'}});
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && data.length) {
+            const lat = Number(data[0].lat), lon = Number(data[0].lon);
+            if (lat > 33.4 && lat < 33.7 && lon > 130.2 && lon < 130.5) {
+              place.loc = [lat, lon];
+              place.resolved = true;
+              place.accuracy = '정확';
+              const old = markers.get(place.id);
+              if (old) map.removeLayer(old);
+              const icon = L.divIcon({className:'custom-pin', html:'<div style="width:18px;height:18px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>', iconSize:[18,18], iconAnchor:[9,9]});
+              const marker = L.marker(place.loc, {icon}).addTo(map).bindPopup(popupHtml(place));
+              marker.on('click', () => selectPlace(place.id, false));
+              markers.set(place.id, marker);
+              if (selectedId === place.id) selectPlace(place.id, false);
+              return true;
+            }
+          }
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, 800));
+      }
+      return false;
+    }
+
+    async function refineAll(){
+      let done = 0, exact = places.filter(p => p.resolved).length;
+      statusEl.textContent = `기본 지도 준비 완료 · 정확 좌표 ${exact}/${places.length}`;
+      for (const place of places){
+        done += 1;
+        statusEl.textContent = `좌표 보정 중… ${done}/${places.length} · 정확 ${exact}/${places.length}`;
+        const before = place.resolved;
+        const ok = await geocodeOne(place);
+        if (!before && ok) exact += 1;
+        await new Promise(r => setTimeout(r, 500));
+      }
+      statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 나머지는 표기 기준 임시 배치`;
+    }
+
+    renderCards();
+    renderMarkers();
+    selectPlace(places[0].id, false);
+    refineAll();
+  </script>
+</body>
+</html>
