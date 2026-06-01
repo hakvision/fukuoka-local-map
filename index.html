@@ -3,38 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>후쿠오카 맛집 지도</title>
+  <title>후쿠오카 맛집 지도 · 오리엔탈 호텔 기준</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <style>
-    :root{
-      --bg:#0b1220; --panel:#111827; --line:#243041; --text:#f8fafc; --sub:#cbd5e1; --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b;
-    }
+    :root{--bg:#0b1220;--panel:#111827;--line:#243041;--text:#f8fafc;--sub:#cbd5e1;--accent:#38bdf8;--ok:#22c55e;--warn:#f59e0b;--hotel:#f43f5e}
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
     body{min-height:100vh}
-    .app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
+    .app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
     .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto}
     h1{margin:0 0 8px;font-size:24px}
     .desc{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:12px}
     .status{font-size:12px;color:#93c5fd;margin-bottom:10px}
     .legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
     .pill{padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--sub);background:#0f172a}
-    .detail{border:1px solid var(--line);background:#0f172a;border-radius:16px;padding:14px;margin-bottom:14px}
-    .detail h2{margin:0 0 6px;font-size:18px}
+    .detail,.hotel-box{border:1px solid var(--line);background:#0f172a;border-radius:16px;padding:14px;margin-bottom:14px}
+    .hotel-box h2,.detail h2{margin:0 0 6px;font-size:18px}
     .meta{font-size:12px;color:#93c5fd;margin-bottom:8px}
     .summary{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:10px}
     .badge{display:inline-block;font-size:11px;padding:4px 8px;border-radius:999px;background:#1e293b;color:#fde68a;border:1px solid #475569}
     .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:9px 12px;border-radius:10px;font-size:13px;border:1px solid rgba(56,189,248,.35);background:#082f49;color:#e0f2fe}
     .btn.secondary{border-color:rgba(34,197,94,.35);background:#14532d;color:#dcfce7}
+    .btn.hotel{border-color:rgba(244,63,94,.35);background:#4c0519;color:#ffe4e6}
     .places{display:flex;flex-direction:column;gap:10px}
     .place{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer}
     .place.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(56,189,248,.18) inset}
     .place:hover{background:#0f172a}
     .place .name{font-weight:800;font-size:15px;margin-bottom:5px}
     .place .sub{font-size:12px;color:#93c5fd;margin-bottom:6px}
-    .place .mini{font-size:12px;color:var(--sub);line-height:1.45}
-    .main{display:grid;grid-template-rows:1fr 280px;min-height:100vh}
+    .place .mini{font-size:12px;color:var(--sub);line-height:1.45;margin-bottom:6px}
+    .place .dist{font-size:12px;color:#fcd34d}
+    .main{display:grid;grid-template-rows:1fr 290px;min-height:100vh}
     #map{height:100%;width:100%}
     .gmaps-wrap{border-top:1px solid var(--line);background:#020617;display:flex;flex-direction:column}
     .gmaps-head{padding:10px 14px;font-size:13px;color:var(--sub);border-bottom:1px solid var(--line)}
@@ -42,35 +42,42 @@
     .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0f172a;color:var(--text)}
     .popup-title{font-weight:800;margin-bottom:6px}
     .popup-desc{font-size:13px;color:var(--sub);line-height:1.45;margin-bottom:8px}
-    @media (max-width: 900px){
-      .app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}
-      .sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}
-      .main{order:2;grid-template-rows:58vh 320px;min-height:unset}
-    }
+    @media (max-width: 900px){.app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}.sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}.main{order:2;grid-template-rows:58vh 320px;min-height:unset}}
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar">
       <h1>후쿠오카 맛집 지도</h1>
-      <div class="desc">15개 맛집을 지도에 표시하고, 클릭하면 설명/구글맵 미리보기/바로열기를 볼 수 있게 만든 로컬 웹앱입니다.</div>
+      <div class="desc">오리엔탈 호텔 후쿠오카 하카타 스테이션을 기준으로 맛집 15곳 거리와 길찾기를 볼 수 있게 정리했습니다.</div>
       <div id="status" class="status">초기화 중…</div>
       <div class="legend">
+        <span class="pill">★ 호텔</span>
         <span class="pill">🍜 라멘</span>
         <span class="pill">🍲 모츠나베</span>
         <span class="pill">🥩 함바그·돈카츠</span>
         <span class="pill">🍛 카레</span>
-        <span class="pill">🍶 이자카야·야타이</span>
       </div>
+
+      <section class="hotel-box">
+        <h2>★ 오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
+        <div class="meta">기준점 · Hakata Station 바로 옆</div>
+        <div class="summary">모든 가게 거리는 이 호텔 기준입니다. 지도에서는 별표 마커로 표시됩니다.</div>
+        <div class="actions">
+          <a id="hotel-open" class="btn hotel" target="_blank" rel="noopener">Google Maps 열기</a>
+          <a id="hotel-focus" class="btn secondary" href="#">호텔 위치 보기</a>
+        </div>
+      </section>
 
       <section class="detail">
         <h2 id="detail-name">맛집 선택</h2>
         <div id="detail-meta" class="meta">지도를 누르거나 목록에서 가게를 선택하세요.</div>
-        <div id="detail-desc" class="summary">선택한 가게의 대략적인 설명과 구글맵 연결을 보여줍니다.</div>
+        <div id="detail-desc" class="summary">선택한 가게의 설명, 호텔 기준 거리, 길찾기 링크를 보여줍니다.</div>
         <div id="detail-badge" class="badge">위치 상태: 준비 중</div>
         <div class="actions">
           <a id="detail-open" class="btn" href="#" target="_blank" rel="noopener">Google Maps 열기</a>
-          <a id="detail-focus" class="btn secondary" href="#">지도에서 보기</a>
+          <a id="detail-route" class="btn secondary" href="#" target="_blank" rel="noopener">호텔에서 길찾기</a>
+          <a id="detail-focus" class="btn hotel" href="#">지도에서 보기</a>
         </div>
       </section>
 
@@ -80,7 +87,7 @@
     <main class="main">
       <div id="map"></div>
       <div class="gmaps-wrap">
-        <div class="gmaps-head">선택한 가게의 Google Maps 미리보기</div>
+        <div class="gmaps-head">선택한 장소의 Google Maps 미리보기</div>
         <iframe id="gmaps-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </main>
@@ -88,6 +95,14 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
+    const hotel = {
+      name: '오리엔탈 호텔 후쿠오카 하카타 스테이션',
+      ja: 'Oriental Hotel Fukuoka Hakata Station',
+      loc: [33.5906166, 130.4219642],
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('Oriental Hotel Fukuoka Hakata Station'),
+      embedUrl: 'https://maps.google.com/maps?q=' + encodeURIComponent('Oriental Hotel Fukuoka Hakata Station') + '&z=16&output=embed'
+    };
+
     const places = [
       {id:'gomasabaya', name:'하카타 고마사바야', type:'🐟 고마사바', district:'하카타', desc:'후쿠오카 대표 메뉴인 고마사바(참깨 양념 고등어회) 계열로 보이는 집.', query:'하카타 고마사바야 후쿠오카', geocodeQueries:['博多ごまさば屋 福岡','博多 ごまさば屋 福岡'], approx:[33.5907,130.4200]},
       {id:'makoto', name:'마코토', type:'🍽️ 일반 식당', district:'확인 필요', desc:'이름만으로 업종이 애매해 현장 검색 확인이 필요한 가게.', query:'마코토 후쿠오카', geocodeQueries:['まこと 福岡 restaurant','マコト 福岡 restaurant'], approx:[33.5860,130.3995]},
@@ -107,13 +122,34 @@
     ].map(p => ({
       ...p,
       mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.query)}`,
+      routeUrl:`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(hotel.ja)}&destination=${encodeURIComponent(p.query)}&travelmode=walking`,
       embedUrl:`https://maps.google.com/maps?q=${encodeURIComponent(p.query)}&z=16&output=embed`,
       loc:p.exact || p.approx,
       resolved:!!p.exact,
       accuracy:p.exact ? '정확' : '대략'
     }));
 
-    const map = L.map('map', {zoomControl:true}).setView([33.5892,130.4017], 13);
+    function haversine(a, b) {
+      const R = 6371e3;
+      const toRad = x => x * Math.PI / 180;
+      const dLat = toRad(b[0] - a[0]);
+      const dLon = toRad(b[1] - a[1]);
+      const lat1 = toRad(a[0]);
+      const lat2 = toRad(b[0]);
+      const s1 = Math.sin(dLat/2), s2 = Math.sin(dLon/2);
+      const x = s1*s1 + Math.cos(lat1)*Math.cos(lat2)*s2*s2;
+      return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+    }
+    function formatDistance(m) { return m < 1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(2)}km`; }
+
+    places.forEach(p => {
+      p.distanceM = haversine(hotel.loc, p.loc);
+      p.distanceText = formatDistance(p.distanceM);
+      p.walkMin = Math.max(1, Math.round(p.distanceM / 75));
+    });
+    places.sort((a,b) => a.distanceM - b.distanceM);
+
+    const map = L.map('map', {zoomControl:true}).setView(hotel.loc, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
 
     const statusEl = document.getElementById('status');
@@ -123,22 +159,49 @@
     const detailDesc = document.getElementById('detail-desc');
     const detailBadge = document.getElementById('detail-badge');
     const detailOpen = document.getElementById('detail-open');
+    const detailRoute = document.getElementById('detail-route');
     const detailFocus = document.getElementById('detail-focus');
     const gmapsFrame = document.getElementById('gmaps-frame');
+    const hotelOpen = document.getElementById('hotel-open');
+    const hotelFocus = document.getElementById('hotel-focus');
+
+    hotelOpen.href = hotel.mapsUrl;
+    hotelFocus.onclick = (e) => { e.preventDefault(); map.setView(hotel.loc, 16, {animate:true}); hotelMarker.openPopup(); };
 
     const markers = new Map();
     const cards = new Map();
     let selectedId = null;
+    let routeLine = null;
 
     const bounds = L.latLngBounds([]);
+    bounds.extend(hotel.loc);
 
-    function badgeText(place){ return `위치 상태: ${place.accuracy} ${place.resolved ? '매칭' : '표기 기준 임시 배치'}`; }
+    function badgeText(place){ return `위치 상태: ${place.accuracy} 매칭 · 호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`; }
 
+    const hotelIcon = L.divIcon({
+      className:'hotel-pin',
+      html:'<div style="width:24px;height:24px;border-radius:50%;background:#f43f5e;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.4)">★</div>',
+      iconSize:[24,24], iconAnchor:[12,12]
+    });
+    const hotelMarker = L.marker(hotel.loc, {icon:hotelIcon}).addTo(map).bindPopup('<div class="popup-title">★ 오리엔탈 호텔 후쿠오카 하카타 스테이션</div><div class="popup-desc">숙소 기준점</div><a class="btn hotel" href="'+hotel.mapsUrl+'" target="_blank" rel="noopener">Google Maps 열기</a>');
+
+    function markerIcon(resolved){
+      const color = resolved ? '#22c55e' : '#f59e0b';
+      return L.divIcon({
+        className:'custom-pin',
+        html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`,
+        iconSize:[18,18], iconAnchor:[9,9]
+      });
+    }
     function popupHtml(place){
       return `<div class="popup-title">${place.name}</div>
               <div class="popup-desc">${place.type} · ${place.district}</div>
+              <div class="popup-desc">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>
               <div class="popup-desc">${place.desc}</div>
-              <a class="btn" href="${place.mapsUrl}" target="_blank" rel="noopener">Google Maps 열기</a>`;
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a class="btn" href="${place.mapsUrl}" target="_blank" rel="noopener">Google Maps</a>
+                <a class="btn secondary" href="${place.routeUrl}" target="_blank" rel="noopener">길찾기</a>
+              </div>`;
     }
 
     function renderCards(){
@@ -148,7 +211,8 @@
         div.className = 'place';
         div.innerHTML = `<div class="name">${place.name}</div>
                          <div class="sub">${place.type} · ${place.district}</div>
-                         <div class="mini">${place.desc}</div>`;
+                         <div class="mini">${place.desc}</div>
+                         <div class="dist">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>`;
         div.addEventListener('click', () => selectPlace(place.id, true));
         placesEl.appendChild(div);
         cards.set(place.id, div);
@@ -157,19 +221,17 @@
 
     function renderMarkers(){
       places.forEach(place => {
-        const color = place.resolved ? '#22c55e' : '#f59e0b';
-        const icon = L.divIcon({
-          className:'custom-pin',
-          html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`,
-          iconSize:[18,18],
-          iconAnchor:[9,9]
-        });
-        const marker = L.marker(place.loc, {icon}).addTo(map).bindPopup(popupHtml(place));
+        const marker = L.marker(place.loc, {icon:markerIcon(place.resolved)}).addTo(map).bindPopup(popupHtml(place));
         marker.on('click', () => selectPlace(place.id, false));
         markers.set(place.id, marker);
         bounds.extend(place.loc);
       });
       map.fitBounds(bounds.pad(0.18));
+    }
+
+    function drawRoute(place){
+      if (routeLine) map.removeLayer(routeLine);
+      routeLine = L.polyline([hotel.loc, place.loc], {color:'#f43f5e', weight:3, dashArray:'6 8', opacity:0.8}).addTo(map);
     }
 
     function selectPlace(id, pan=true){
@@ -178,19 +240,21 @@
       selectedId = id;
       detailName.textContent = place.name;
       detailMeta.textContent = `${place.type} · ${place.district}`;
-      detailDesc.textContent = place.desc;
+      detailDesc.textContent = `${place.desc} 호텔 기준 ${place.distanceText}, 도보 약 ${place.walkMin}분 정도로 보면 됩니다.`;
       detailBadge.textContent = badgeText(place);
       detailOpen.href = place.mapsUrl;
+      detailRoute.href = place.routeUrl;
       detailFocus.onclick = (e) => { e.preventDefault(); focusPlace(place.id); };
       gmapsFrame.src = place.embedUrl;
       cards.forEach((el,k) => el.classList.toggle('active', k===id));
+      drawRoute(place);
       if (pan) focusPlace(id);
     }
 
     function focusPlace(id){
       const marker = markers.get(id);
       if(!marker) return;
-      map.setView(marker.getLatLng(), 16, {animate:true});
+      map.fitBounds(L.latLngBounds([hotel.loc, marker.getLatLng()]).pad(0.35), {animate:true});
       marker.openPopup();
     }
 
@@ -208,12 +272,17 @@
               place.loc = [lat, lon];
               place.resolved = true;
               place.accuracy = '정확';
+              place.distanceM = haversine(hotel.loc, place.loc);
+              place.distanceText = formatDistance(place.distanceM);
+              place.walkMin = Math.max(1, Math.round(place.distanceM / 75));
               const old = markers.get(place.id);
               if (old) map.removeLayer(old);
-              const icon = L.divIcon({className:'custom-pin', html:'<div style="width:18px;height:18px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>', iconSize:[18,18], iconAnchor:[9,9]});
-              const marker = L.marker(place.loc, {icon}).addTo(map).bindPopup(popupHtml(place));
+              const marker = L.marker(place.loc, {icon:markerIcon(true)}).addTo(map).bindPopup(popupHtml(place));
               marker.on('click', () => selectPlace(place.id, false));
               markers.set(place.id, marker);
+              if (cards.get(place.id)) {
+                cards.get(place.id).querySelector('.dist').textContent = `호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`;
+              }
               if (selectedId === place.id) selectPlace(place.id, false);
               return true;
             }
@@ -235,11 +304,12 @@
         if (!before && ok) exact += 1;
         await new Promise(r => setTimeout(r, 500));
       }
-      statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 나머지는 표기 기준 임시 배치`;
+      statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 거리/길찾기 모두 호텔 기준 반영`;
     }
 
     renderCards();
     renderMarkers();
+    gmapsFrame.src = hotel.embedUrl;
     selectPlace(places[0].id, false);
     refineAll();
   </script>
