@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>후쿠오카 맛집 지도 · 호텔 기준 + 영상 2개 반영</title>
+  <title>후쿠오카 맛집 지도 · 호텔 기준 + 강나미/더들리 반영</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <style>
     :root{
@@ -62,14 +62,14 @@
   <div class="app">
     <aside class="sidebar">
       <h1>후쿠오카 맛집 지도</h1>
-      <div class="desc">기존 저장 맛집 + 유튜브 1번 + 유튜브 2번을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
+      <div class="desc">기존 명물 맛집 + 강나미 영상 + 더들리 영상을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
       <div id="status" class="status">초기화 중…</div>
 
       <div class="legend">
         <span class="pill">★ 호텔</span>
-        <span class="pill">초록 = 기존 추가</span>
-        <span class="pill">파랑 = 영상 1</span>
-        <span class="pill">주황 = 영상 2</span>
+        <span class="pill">초록 = 기존 명물</span>
+        <span class="pill">파랑 = 강나미</span>
+        <span class="pill">주황 = 더들리</span>
         <span class="pill">보라 = 여러 출처 중복</span>
       </div>
 
@@ -173,9 +173,9 @@
     }));
 
     const sourceMeta = {
-      existing: {label:'기존 추가', color:'var(--existing)', cls:'existing'},
-      video1: {label:'영상 1', color:'var(--video1)', cls:'video1', url:'https://youtu.be/hYi7qsrIg5I?si=n49sHEYaDtDLJUlj'},
-      video2: {label:'영상 2', color:'var(--video2)', cls:'video2', url:'https://youtu.be/hFfFzE1kzts?si=dIFj7JH1zp5bxQLK'}
+      existing: {label:'기존 명물', color:'var(--existing)', cls:'existing'},
+      video1: {label:'강나미', color:'var(--video1)', cls:'video1', url:'https://youtu.be/hYi7qsrIg5I?si=n49sHEYaDtDLJUlj'},
+      video2: {label:'더들리', color:'var(--video2)', cls:'video2', url:'https://youtu.be/hFfFzE1kzts?si=dIFj7JH1zp5bxQLK'}
     };
 
     function sourceKey(place){ return place.sources.length > 1 ? 'multi' : place.sources[0]; }
@@ -375,9 +375,9 @@
       statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 호텔 기준 거리/길찾기/출처 색상 반영`;
     }
 
-    renderSection('section-existing', '기존 추가 맛집', groups.existing, '기존 맛집 기준 보기', '#', '');
-    renderSection('section-video1', '영상 1 맛집', groups.video1, '영상 1 열기', sourceMeta.video1.url, 'video1');
-    renderSection('section-video2', '영상 2 맛집', groups.video2, '영상 2 열기', sourceMeta.video2.url, 'video2');
+    renderSection('section-existing', '기존 명물 맛집', groups.existing, '기존 명물 보기', '#', '');
+    renderSection('section-video1', '강나미 맛집', groups.video1, '강나미 영상 열기', sourceMeta.video1.url, 'video1');
+    renderSection('section-video2', '더들리 맛집', groups.video2, '더들리 영상 열기', sourceMeta.video2.url, 'video2');
     document.querySelector('#section-existing .actions').style.display='none';
 
     renderMarkers();
