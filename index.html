@@ -3,37 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>후쿠오카 맛집 지도 · 오리엔탈 호텔 기준</title>
+  <title>후쿠오카 맛집 지도 · 호텔 기준 + 영상 2개 반영</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <style>
-    :root{--bg:#0b1220;--panel:#111827;--line:#243041;--text:#f8fafc;--sub:#cbd5e1;--accent:#38bdf8;--ok:#22c55e;--warn:#f59e0b;--hotel:#f43f5e}
+    :root{
+      --bg:#0b1220; --panel:#111827; --line:#243041; --text:#f8fafc; --sub:#cbd5e1;
+      --existing:#22c55e; --video1:#38bdf8; --video2:#f59e0b; --multi:#a855f7; --hotel:#f43f5e;
+    }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
     body{min-height:100vh}
-    .app{display:grid;grid-template-columns:380px 1fr;min-height:100vh}
+    .app{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
     .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto}
     h1{margin:0 0 8px;font-size:24px}
     .desc{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:12px}
     .status{font-size:12px;color:#93c5fd;margin-bottom:10px}
     .legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
     .pill{padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--sub);background:#0f172a}
-    .detail,.hotel-box{border:1px solid var(--line);background:#0f172a;border-radius:16px;padding:14px;margin-bottom:14px}
-    .hotel-box h2,.detail h2{margin:0 0 6px;font-size:18px}
+    .hotel-box,.detail,.section{border:1px solid var(--line);background:#0f172a;border-radius:16px;padding:14px;margin-bottom:14px}
+    .hotel-box h2,.detail h2,.section h2{margin:0 0 8px;font-size:18px}
     .meta{font-size:12px;color:#93c5fd;margin-bottom:8px}
     .summary{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:10px}
     .badge{display:inline-block;font-size:11px;padding:4px 8px;border-radius:999px;background:#1e293b;color:#fde68a;border:1px solid #475569}
     .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:9px 12px;border-radius:10px;font-size:13px;border:1px solid rgba(56,189,248,.35);background:#082f49;color:#e0f2fe}
     .btn.secondary{border-color:rgba(34,197,94,.35);background:#14532d;color:#dcfce7}
+    .btn.video1{border-color:rgba(56,189,248,.35);background:#082f49;color:#e0f2fe}
+    .btn.video2{border-color:rgba(245,158,11,.35);background:#4a2a00;color:#ffedd5}
     .btn.hotel{border-color:rgba(244,63,94,.35);background:#4c0519;color:#ffe4e6}
+    .group-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .count{font-size:12px;color:#93c5fd}
     .places{display:flex;flex-direction:column;gap:10px}
     .place{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer}
-    .place.active{border-color:var(--accent);box-shadow:0 0 0 1px rgba(56,189,248,.18) inset}
-    .place:hover{background:#0f172a}
+    .place.active{box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+    .place:hover{background:#101826}
     .place .name{font-weight:800;font-size:15px;margin-bottom:5px}
     .place .sub{font-size:12px;color:#93c5fd;margin-bottom:6px}
     .place .mini{font-size:12px;color:var(--sub);line-height:1.45;margin-bottom:6px}
     .place .dist{font-size:12px;color:#fcd34d}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .chip{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid transparent}
+    .chip.existing{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.35);color:#bbf7d0}
+    .chip.video1{background:rgba(56,189,248,.14);border-color:rgba(56,189,248,.35);color:#bae6fd}
+    .chip.video2{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35);color:#fed7aa}
+    .chip.multi{background:rgba(168,85,247,.14);border-color:rgba(168,85,247,.35);color:#e9d5ff}
     .main{display:grid;grid-template-rows:1fr 290px;min-height:100vh}
     #map{height:100%;width:100%}
     .gmaps-wrap{border-top:1px solid var(--line);background:#020617;display:flex;flex-direction:column}
@@ -42,27 +55,28 @@
     .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0f172a;color:var(--text)}
     .popup-title{font-weight:800;margin-bottom:6px}
     .popup-desc{font-size:13px;color:var(--sub);line-height:1.45;margin-bottom:8px}
-    @media (max-width: 900px){.app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}.sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}.main{order:2;grid-template-rows:58vh 320px;min-height:unset}}
+    @media (max-width: 980px){.app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}.sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}.main{order:2;grid-template-rows:58vh 320px;min-height:unset}}
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar">
       <h1>후쿠오카 맛집 지도</h1>
-      <div class="desc">오리엔탈 호텔 후쿠오카 하카타 스테이션을 기준으로 맛집 15곳 거리와 길찾기를 볼 수 있게 정리했습니다.</div>
+      <div class="desc">기존 저장 맛집 + 유튜브 1번 + 유튜브 2번을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
       <div id="status" class="status">초기화 중…</div>
+
       <div class="legend">
         <span class="pill">★ 호텔</span>
-        <span class="pill">🍜 라멘</span>
-        <span class="pill">🍲 모츠나베</span>
-        <span class="pill">🥩 함바그·돈카츠</span>
-        <span class="pill">🍛 카레</span>
+        <span class="pill">초록 = 기존 추가</span>
+        <span class="pill">파랑 = 영상 1</span>
+        <span class="pill">주황 = 영상 2</span>
+        <span class="pill">보라 = 여러 출처 중복</span>
       </div>
 
       <section class="hotel-box">
-        <h2>★ 오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
-        <div class="meta">기준점 · Hakata Station 바로 옆</div>
-        <div class="summary">모든 가게 거리는 이 호텔 기준입니다. 지도에서는 별표 마커로 표시됩니다.</div>
+        <h2>오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
+        <div class="meta">기준 숙소 · 별표 마커</div>
+        <div class="summary">모든 맛집 거리는 이 호텔 기준입니다. 클릭한 가게마다 Google Maps 길찾기 링크도 넣어뒀습니다.</div>
         <div class="actions">
           <a id="hotel-open" class="btn hotel" target="_blank" rel="noopener">Google Maps 열기</a>
           <a id="hotel-focus" class="btn secondary" href="#">호텔 위치 보기</a>
@@ -72,7 +86,8 @@
       <section class="detail">
         <h2 id="detail-name">맛집 선택</h2>
         <div id="detail-meta" class="meta">지도를 누르거나 목록에서 가게를 선택하세요.</div>
-        <div id="detail-desc" class="summary">선택한 가게의 설명, 호텔 기준 거리, 길찾기 링크를 보여줍니다.</div>
+        <div id="detail-chips" class="chips"></div>
+        <div id="detail-desc" class="summary">선택한 가게의 설명, 출처, 호텔 기준 거리, 길찾기 링크를 보여줍니다.</div>
         <div id="detail-badge" class="badge">위치 상태: 준비 중</div>
         <div class="actions">
           <a id="detail-open" class="btn" href="#" target="_blank" rel="noopener">Google Maps 열기</a>
@@ -81,7 +96,9 @@
         </div>
       </section>
 
-      <section id="places" class="places"></section>
+      <section id="section-existing" class="section"></section>
+      <section id="section-video1" class="section"></section>
+      <section id="section-video2" class="section"></section>
     </aside>
 
     <main class="main">
@@ -104,56 +121,95 @@
     };
 
     const places = [
-      {id:'gomasabaya', name:'하카타 고마사바야', type:'🐟 고마사바', district:'하카타', desc:'후쿠오카 대표 메뉴인 고마사바(참깨 양념 고등어회) 계열로 보이는 집.', query:'하카타 고마사바야 후쿠오카', geocodeQueries:['博多ごまさば屋 福岡','博多 ごまさば屋 福岡'], approx:[33.5907,130.4200]},
-      {id:'makoto', name:'마코토', type:'🍽️ 일반 식당', district:'확인 필요', desc:'이름만으로 업종이 애매해 현장 검색 확인이 필요한 가게.', query:'마코토 후쿠오카', geocodeQueries:['まこと 福岡 restaurant','マコト 福岡 restaurant'], approx:[33.5860,130.3995]},
-      {id:'tashu', name:'모츠나베 타슈', type:'🍲 모츠나베', district:'텐진·다이묘 추정', desc:'후쿠오카식 곱창전골 모츠나베로 알려진 계열의 가게.', query:'모츠나베 타슈 후쿠오카', geocodeQueries:['もつ鍋 田しゅ 福岡','田しゅ 大名 福岡'], approx:[33.5882,130.3958]},
-      {id:'hacchan', name:'핫짱라멘', type:'🍜 라멘', district:'텐진·와타나베도리', desc:'진한 돈코츠 계열로 많이 알려진 후쿠오카 로컬 라멘집.', query:'핫짱라멘 후쿠오카', geocodeQueries:['八ちゃんラーメン 福岡'], approx:[33.5815466,130.4037583], exact:[33.5815466,130.4037583]},
-      {id:'yoshida', name:'돈카츠 요시다', type:'🥩 돈카츠', district:'확인 필요', desc:'돈카츠·정식 계열로 보이는 가게. 표기 변형 가능성 있음.', query:'돈카츠 요시다 후쿠오카', geocodeQueries:['とんかつ よし田 福岡','よし田 福岡 とんかつ'], approx:[33.5900,130.4020]},
-      {id:'kiwamiya', name:'키와미야 함바그', type:'🥩 함바그', district:'하카타', desc:'직접 구워먹는 함바그 스테이크로 유명한 후쿠오카 대표 맛집.', query:'키와미야 함바그 후쿠오카', geocodeQueries:['極味や 福岡'], approx:[33.591721,130.4197822], exact:[33.591721,130.4197822]},
-      {id:'kego-yakiton', name:'케고 야키톤', type:'🍶 야키톤', district:'케고 추정', desc:'돼지 꼬치구이·이자카야 계열로 보이는 가게.', query:'케고 야키톤 후쿠오카', geocodeQueries:['警固 焼きとん 福岡','焼きとん 警固 福岡'], approx:[33.5867,130.3928]},
-      {id:'pizza-rocco', name:'피자로코', type:'🍕 피자', district:'다이묘·야쿠인 추정', desc:'피자 전문점 계열로 보이는 가게.', query:'피자로코 후쿠오카', geocodeQueries:['Pizza Rocco Fukuoka','ピザロッコ 福岡'], approx:[33.5848,130.3971]},
-      {id:'asako', name:'아사코', type:'🍽️ 일반 식당', district:'확인 필요', desc:'이름만으로 업종 판단이 어려운 가게.', query:'아사코 후쿠오카', geocodeQueries:['あさこ 福岡 restaurant'], approx:[33.5895,130.3970]},
-      {id:'inadaya', name:'이나다야 선', type:'🍽️ 일반 식당', district:'확인 필요', desc:'브랜드명 또는 지점명이 함께 붙은 가게일 가능성이 있습니다.', query:'이나다야 선 후쿠오카', geocodeQueries:['稲田屋 SUN 福岡','いな田屋 SUN 福岡'], approx:[33.5904,130.4055]},
-      {id:'uochu', name:'우오츄', type:'🐟 해산물', district:'이마이즈미', desc:'생선·해산물 중심일 가능성이 높은 가게.', query:'우오츄 후쿠오카', geocodeQueries:['魚忠 福岡'], approx:[33.5853624,130.3976949], exact:[33.5853624,130.3976949]},
-      {id:'yatai-mune', name:'야타이 무네', type:'🍶 야타이', district:'나카스·강변 추정', desc:'후쿠오카 포장마차(야타이) 스타일로 보이는 가게.', query:'야타이 무네 후쿠오카', geocodeQueries:['屋台むね 福岡'], approx:[33.5925,130.4012]},
-      {id:'shinkawabashi', name:'로바타 신가와바시', type:'🔥 로바타', district:'나카스 인근 추정', desc:'숯불구이·해산물 중심 로바타야키 계열로 보이는 가게.', query:'로바타 신가와바시 후쿠오카', geocodeQueries:['炉端 新川橋 福岡'], approx:[33.5888,130.4088]},
-      {id:'garam', name:'GARAM', type:'🍛 카레', district:'다이묘·아카사카 추정', desc:'향신료 카레 계열 후보 가게.', query:'GARAM 후쿠오카 카레', geocodeQueries:['GARAM 福岡 カレー','ガラム 福岡 カレー'], approx:[33.5900,130.3922]},
-      {id:'vox', name:'스파이스카레 복스', type:'🍛 스파이스 카레', district:'아카사카·야쿠인 추정', desc:'향신료 카레 전문점으로 보이는 가게.', query:'스파이스카레 복스 후쿠오카', geocodeQueries:['スパイスカレーVOX 福岡','Spice Curry VOX Fukuoka'], approx:[33.5842,130.3918]}
+      {id:'gomasabaya',name:'하카타 고마사바야',type:'🐟 고마사바',district:'하카타',desc:'후쿠오카 대표 메뉴인 고마사바 계열로 보이는 집.',query:'하카타 고마사바야 후쿠오카',sources:['existing'],geocodeQueries:['博多ごまさば屋 福岡','博多 ごまさば屋 福岡'],approx:[33.5907,130.4200]},
+      {id:'makoto',name:'마코토',type:'🍽️ 일반 식당',district:'확인 필요',desc:'이름만으로 업종이 애매해 현장 검색 확인이 필요한 가게.',query:'마코토 후쿠오카',sources:['existing'],geocodeQueries:['まこと 福岡 restaurant','マコト 福岡 restaurant'],approx:[33.5860,130.3995]},
+      {id:'tashu',name:'모츠나베 타슈',type:'🍲 모츠나베',district:'텐진·다이묘 추정',desc:'후쿠오카식 모츠나베로 알려진 계열의 가게.',query:'모츠나베 타슈 후쿠오카',sources:['existing'],geocodeQueries:['もつ鍋 田しゅ 福岡','田しゅ 大名 福岡'],approx:[33.5882,130.3958]},
+      {id:'hacchan',name:'핫짱라멘',type:'🍜 라멘',district:'텐진·와타나베도리',desc:'진한 돈코츠 계열로 많이 알려진 후쿠오카 로컬 라멘집.',query:'핫짱라멘 후쿠오카',sources:['existing'],geocodeQueries:['八ちゃんラーメン 福岡'],exact:[33.5815466,130.4037583]},
+      {id:'yoshida',name:'돈카츠 요시다',type:'🥩 돈카츠',district:'확인 필요',desc:'돈카츠·정식 계열로 보이는 가게.',query:'돈카츠 요시다 후쿠오카',sources:['existing'],geocodeQueries:['とんかつ よし田 福岡','よし田 福岡 とんかつ'],approx:[33.5900,130.4020]},
+      {id:'kiwamiya',name:'키와미야 함바그',type:'🥩 함바그',district:'하카타',desc:'직접 구워먹는 함바그 스테이크로 유명한 대표 맛집.',query:'키와미야 함바그 후쿠오카',sources:['existing'],geocodeQueries:['極味や 福岡'],exact:[33.591721,130.4197822]},
+      {id:'kego-yakiton',name:'케고 야키톤',type:'🍶 야키톤',district:'케고 추정',desc:'돼지 꼬치구이·이자카야 계열로 보이는 가게.',query:'케고 야키톤 후쿠오카',sources:['existing'],geocodeQueries:['警固 焼きとん 福岡','焼きとん 警固 福岡'],approx:[33.5867,130.3928]},
+      {id:'pizza-rocco',name:'피자로코',type:'🍕 피자',district:'다이묘·야쿠인 추정',desc:'피자 전문점 계열로 보이는 가게.',query:'피자로코 후쿠오카',sources:['existing'],geocodeQueries:['Pizza Rocco Fukuoka','ピザロッコ 福岡'],approx:[33.5848,130.3971]},
+      {id:'asako',name:'아사코',type:'🍽️ 일반 식당',district:'확인 필요',desc:'이름만으로 업종 판단이 어려운 가게.',query:'아사코 후쿠오카',sources:['existing'],geocodeQueries:['あさこ 福岡 restaurant'],approx:[33.5895,130.3970]},
+      {id:'inadaya',name:'이나다야 선',type:'🍽️ 일반 식당',district:'확인 필요',desc:'브랜드명 또는 지점명이 함께 붙은 가게일 가능성이 있습니다.',query:'이나다야 선 후쿠오카',sources:['existing'],geocodeQueries:['稲田屋 SUN 福岡','いな田屋 SUN 福岡'],approx:[33.5904,130.4055]},
+      {id:'uochu',name:'우오츄',type:'🐟 해산물',district:'이마이즈미',desc:'생선·해산물 중심일 가능성이 높은 가게.',query:'우오츄 후쿠오카',sources:['existing'],geocodeQueries:['魚忠 福岡'],exact:[33.5853624,130.3976949]},
+      {id:'yatai-mune',name:'야타이 무네',type:'🍶 야타이',district:'나카스·강변 추정',desc:'후쿠오카 포장마차 스타일로 보이는 가게.',query:'야타이 무네 후쿠오카',sources:['existing'],geocodeQueries:['屋台むね 福岡'],approx:[33.5925,130.4012]},
+      {id:'shinkawabashi',name:'로바타 신가와바시',type:'🔥 로바타',district:'나카스 인근 추정',desc:'숯불구이·해산물 중심 로바타야키 계열로 보이는 가게.',query:'로바타 신가와바시 후쿠오카',sources:['existing'],geocodeQueries:['炉端 新川橋 福岡'],approx:[33.5888,130.4088]},
+      {id:'garam',name:'GARAM',type:'🍛 카레',district:'다이묘·아카사카 추정',desc:'향신료 카레 계열 후보 가게.',query:'GARAM 후쿠오카 카레',sources:['existing'],geocodeQueries:['GARAM 福岡 カレー','ガラム 福岡 カレー'],approx:[33.5900,130.3922]},
+      {id:'vox',name:'스파이스카레 복스',type:'🍛 스파이스 카레',district:'아카사카·야쿠인 추정',desc:'향신료 카레 전문점으로 보이는 가게.',query:'스파이스카레 복스 후쿠오카',sources:['existing'],geocodeQueries:['スパイスカレーVOX 福岡','Spice Curry VOX Fukuoka'],approx:[33.5842,130.3918]},
+
+      {id:'daruma-main',name:'하카타 다루마 본점',type:'🍜 라멘',district:'하카타',desc:'영상 1에서 첫 후보로 등장한 돈코츠 라멘 본점. 촬영 시 오픈 전이라 실패했지만 추천 포인트로 언급됨.',query:'Hakata Daruma Main Branch Fukuoka',sources:['video1'],geocodeQueries:['博多だるま 総本店 福岡','Hakata Daruma Main Branch Fukuoka'],approx:[33.5798,130.4024]},
+      {id:'ganso-nagahamaya',name:'겐소 나가하마야',type:'🍜 라멘',district:'나가하마',desc:'영상 1 첫 성공 가게. 1952년부터 이어진 전설의 원조 하카타 돈코츠 라멘으로 소개됨.',query:'元祖長浜屋 福岡',sources:['video1'],geocodeQueries:['元祖長浜屋 福岡'],exact:[33.592439,130.3866146]},
+      {id:'hakataya',name:'하카타야 하카타 라멘',type:'🍜 라멘',district:'여러 지점',desc:'영상 1에서 택시기사 추천 290엔 라멘집으로 등장. 가성비 강점.',query:'Hakataya Hakata Ramen Fukuoka',sources:['video1'],geocodeQueries:['博多ラーメン はかたや 博多駅前店 福岡','博多ラーメン はかたや 福岡'],approx:[33.5892,130.4185]},
+      {id:'shibaraku',name:'시바라쿠',type:'🍜 라멘',district:'로컬 추천',desc:'영상 1에서 현지인 강추천이었지만 촬영 불가로 맛만 소개된 로컬 라멘집.',query:'Shibaraku Fukuoka ramen',sources:['video1'],geocodeQueries:['しばらく 福岡','博多ラーメン しばらく 福岡'],approx:[33.5836,130.3609]},
+      {id:'hakata-issou',name:'하카타 잇소',type:'🍜 라멘',district:'하카타',desc:'영상 1 세 번째 촬영 성공 가게. 진하고 크리미한 돈코츠로 묘사됨.',query:'博多一双 福岡',sources:['video1'],geocodeQueries:['博多一双 福岡'],exact:[33.5863665,130.4251099]},
+      {id:'ichimujin',name:'라멘 이치무진',type:'🍜 라멘',district:'고후쿠마치',desc:'영상 1 네 번째 가게. 명란 무제한과 함께 즐기는 독특한 돈코츠로 소개됨.',query:'Ramen Ichimujin Gofukumachi Fukuoka',sources:['video1'],geocodeQueries:['一無尽 呉服町 福岡','ラーメン 一無尽 呉服町 福岡'],approx:[33.5958,130.4086]},
+      {id:'fullfull-hakata',name:'더 풀풀 하카타',type:'🥖 빵·명란바게트',district:'하카타',desc:'영상 1 다섯 번째. 멘타이코 바게트와 크림빵으로 유명한 베이커리.',query:'THE FULL FULL HAKATA Fukuoka',sources:['video1'],geocodeQueries:['THE FULL FULL HAKATA 福岡','The Full Full Hakata Fukuoka'],approx:[33.5954,130.4387]},
+      {id:'ichiran-main',name:'이치란 라멘 본점/총본점',type:'🍜 라멘',district:'나카스',desc:'영상 1 마지막 라멘 파트. 선택 실패가 싫을 때의 안전한 메이저 돈코츠로 소개됨.',query:'Ichiran Main Branch Fukuoka',sources:['video1','video2'],geocodeQueries:['一蘭 本社総本店 福岡','Ichiran Main Branch Fukuoka'],approx:[33.5907,130.4047]},
+      {id:'takechan-yatai',name:'타케짱 야타이',type:'🍜 야타이 라멘',district:'나카스',desc:'영상 1 마지막. 나카스 강변 야타이에서 먹는 톤코츠 라멘으로 소개됨.',query:'屋台 たけちゃん 福岡',sources:['video1'],geocodeQueries:['屋台 たけちゃん 福岡','Takechan Yatai Fukuoka'],approx:[33.5908,130.4044]},
+
+      {id:'sushi-sakaba',name:'스시사카바',type:'🍣 스시',district:'하카타역',desc:'영상 2 첫 식사. 한국인에게 인기 많은 스시집으로 소개됨.',query:'すし酒場さしす KITTE博多 福岡',sources:['video2'],geocodeQueries:['すし酒場さしす KITTE博多 福岡','すし酒場さしす 博多 福岡'],approx:[33.5898,130.4203]},
+      {id:'imonne-hakata',name:'이몬네 하카타',type:'🍨 모찌 아이스크림',district:'하카타역',desc:'영상 2 디저트. 모찌 아이스크림 만드는 과정을 볼 수 있는 곳으로 소개됨.',query:'いもんね 博多 福岡',sources:['video2'],geocodeQueries:['いもんね 博多 福岡'],approx:[33.5898,130.4204]},
+      {id:'josuian',name:'죠스이안 본점',type:'🍓 딸기모찌',district:'하카타역',desc:'영상 2 디저트 포장용. 실로 잘라먹는 딸기모찌 소개.',query:'如水庵 博多駅前本店 福岡',sources:['video2'],geocodeQueries:['如水庵 博多駅前本店 福岡'],approx:[33.5887,130.4204]},
+      {id:'boulange',name:'BOUL\'ANGE',type:'🥐 크라상 아이스크림',district:'텐진',desc:'영상 2 디저트. 크라상 + 우유 아이스크림 조합으로 소개됨.',query:'BOUL\'ANGE Fukuoka',sources:['video2'],geocodeQueries:['BOUL\'ANGE 福岡'],exact:[33.5879656,130.4013518]},
+      {id:'yakitori-mako',name:'야키토리 마코',type:'🍢 야키토리',district:'텐진',desc:'영상 2 저녁 1차. 일본 토종닭 야키토리 코스로 소개됨.',query:'焼鳥まこ 福岡',sources:['video2'],geocodeQueries:['焼鳥 まこ 福岡','焼鳥まこ 福岡'],approx:[33.5860,130.3937]},
+      {id:'kushiage-hayashi',name:'쿠시아게 하야시',type:'🍤 쿠시아게',district:'후쿠오카 시내',desc:'영상 2 저녁 2차. 도쿄에서 후쿠오카로 이전한 쿠시아게 코스집으로 소개됨.',query:'串揚げ はやし 福岡',sources:['video2'],geocodeQueries:['串揚げ はやし 福岡'],approx:[33.5877,130.3948]},
+      {id:'sabataro',name:'사바타로',type:'🐟 고등어 정식',district:'아침식사',desc:'영상 2 아침식사. 고등어구이·고등어회·솥밥 세트로 소개됨.',query:'さばたろう 福岡',sources:['video2'],geocodeQueries:['さばたろう 福岡'],approx:[33.5866,130.3955]},
+      {id:'sushi-sakai',name:'스시 사카이',type:'🍣 스시 오마카세',district:'텐진',desc:'영상 2 마지막 식사. 미쉐린 3스타급으로 언급된 스시 오마카세.',query:'鮨 さかい 福岡',sources:['video2'],geocodeQueries:['鮨 さかい 福岡','Sushi Sakai Fukuoka'],approx:[33.5839,130.3964]},
+      {id:'pain-stock-tenjin',name:'빵 스톡 텐진점',type:'🥖 명란바게트',district:'텐진',desc:'영상 2 디저트/간식. 명란바게트가 가장 인상 깊었다고 소개됨.',query:'パンストック 天神店 福岡',sources:['video2'],geocodeQueries:['パンストック 天神店 福岡','Pain Stock Tenjin Fukuoka'],approx:[33.5839,130.3961]},
+      {id:'mitsuimo-time',name:'미츠이모 타임 야쿠인점',type:'🍠 고구마 디저트',district:'야쿠인',desc:'영상 2 마지막 디저트. 고구마 아이스크림과 큰 고구마칩 토핑으로 소개됨.',query:'蜜芋タイム 薬院店 福岡',sources:['video2'],geocodeQueries:['蜜芋タイム 薬院店 福岡'],approx:[33.5785,130.3988]},
+      {id:'fruit-garden-shinsun',name:'후르츠 가든 신선',type:'🍓 후르츠산도',district:'하카타역',desc:'영상 2 추가 추천. 오래 기다리지만 유명한 후르츠 산도집으로 언급됨.',query:'フルーツガーデン 新SUN 福岡',sources:['video2'],geocodeQueries:['フルーツガーデン 新SUN 福岡','新SUN 博多 福岡'],approx:[33.5899,130.4197]},
+      {id:'dacomecca',name:'다코멧카',type:'🌭 소시지빵',district:'하카타역',desc:'영상 2 추가 추천. 숯불에 구운 소시지빵이 유명한 빵집.',query:'DACOMECCA 福岡',sources:['video2'],geocodeQueries:['DACOMECCA 福岡'],exact:[33.58741,130.4192278]},
+      {id:'yakitori-koto',name:'야키토리 코토',type:'🍢 야키토리',district:'후쿠오카 시내',desc:'영상 2 추가 추천. 예약이 비교적 필요한 인기 야키토리로 언급됨.',query:'焼鳥 こと 福岡',sources:['video2'],geocodeQueries:['焼鳥 こと 福岡'],approx:[33.5865,130.3945]},
+      {id:'hyogotori',name:'효고토리',type:'🍢 야키토리',district:'후쿠오카 시내',desc:'영상 2 추가 추천. 가성비 좋은 야키토리 코스집으로 언급됨.',query:'兵庫鳥 福岡',sources:['video2'],geocodeQueries:['兵庫鳥 福岡'],approx:[33.5860,130.3920]},
+      {id:'nagarakudo',name:'나가라쿠도',type:'🍶 이자카야',district:'후쿠오카 시내',desc:'영상 2 추가 추천. 해산물/생선구이/모둠회가 좋았다고 소개됨.',query:'ながらく堂 福岡',sources:['video2'],geocodeQueries:['ながらく堂 福岡'],approx:[33.5856,130.3978]},
+      {id:'ikura-imaizumi',name:'이쿠라 텐진 이마이즈미점',type:'🍳 철판/함박',district:'이마이즈미',desc:'영상 2 추가 추천. 철판 앞에서 구워지는 계란과 함박이 인상적이라고 언급됨.',query:'いくら 天神今泉店 福岡',sources:['video2'],geocodeQueries:['いくら 天神今泉店 福岡'],approx:[33.5847,130.3968]},
+      {id:'menya-kanetora',name:'멘야 카네토라',type:'🍜 츠케멘',district:'케고',desc:'영상 2 추가 추천. 유명한 츠케멘집으로 소개됨.',query:'麺や兼虎 福岡',sources:['video2'],geocodeQueries:['麺や兼虎 福岡'],exact:[33.585965,130.390864]},
+      {id:'imoya-kinjiro',name:'이모야 킨지로',type:'🍠 고구마 튀김',district:'후쿠오카 시내',desc:'영상 2 추가 추천. 잘게 잘린 고구마 빠스 스타일 디저트.',query:'芋屋金次郎 福岡',sources:['video2'],geocodeQueries:['芋屋金次郎 福岡'],approx:[33.5850,130.3989]}
     ].map(p => ({
       ...p,
-      mapsUrl:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.query)}`,
-      routeUrl:`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(hotel.ja)}&destination=${encodeURIComponent(p.query)}&travelmode=walking`,
-      embedUrl:`https://maps.google.com/maps?q=${encodeURIComponent(p.query)}&z=16&output=embed`,
-      loc:p.exact || p.approx,
-      resolved:!!p.exact,
-      accuracy:p.exact ? '정확' : '대략'
+      loc: p.exact || p.approx,
+      resolved: !!p.exact,
+      accuracy: p.exact ? '정확' : '대략'
     }));
 
-    function haversine(a, b) {
-      const R = 6371e3;
-      const toRad = x => x * Math.PI / 180;
-      const dLat = toRad(b[0] - a[0]);
-      const dLon = toRad(b[1] - a[1]);
-      const lat1 = toRad(a[0]);
-      const lat2 = toRad(b[0]);
-      const s1 = Math.sin(dLat/2), s2 = Math.sin(dLon/2);
-      const x = s1*s1 + Math.cos(lat1)*Math.cos(lat2)*s2*s2;
-      return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
-    }
+    const sourceMeta = {
+      existing: {label:'기존 추가', color:'var(--existing)', cls:'existing'},
+      video1: {label:'영상 1', color:'var(--video1)', cls:'video1', url:'https://youtu.be/hYi7qsrIg5I?si=n49sHEYaDtDLJUlj'},
+      video2: {label:'영상 2', color:'var(--video2)', cls:'video2', url:'https://youtu.be/hFfFzE1kzts?si=dIFj7JH1zp5bxQLK'}
+    };
+
+    function sourceKey(place){ return place.sources.length > 1 ? 'multi' : place.sources[0]; }
+    function sourceLabel(place){ return place.sources.map(s => sourceMeta[s].label).join(' + '); }
+    function chipHtml(s){ const m = sourceMeta[s]; return `<span class="chip ${m.cls}">${m.label}</span>`; }
+    function haversine(a, b) { const R = 6371e3; const toRad = x => x * Math.PI / 180; const dLat = toRad(b[0]-a[0]); const dLon = toRad(b[1]-a[1]); const lat1 = toRad(a[0]); const lat2 = toRad(b[0]); const x = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2; return 2*R*Math.atan2(Math.sqrt(x), Math.sqrt(1-x)); }
     function formatDistance(m) { return m < 1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(2)}km`; }
+    function markerColor(place){
+      const key = sourceKey(place);
+      if (key === 'multi') return '#a855f7';
+      if (key === 'video1') return '#38bdf8';
+      if (key === 'video2') return '#f59e0b';
+      return '#22c55e';
+    }
 
     places.forEach(p => {
+      p.mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.query)}`;
+      p.routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(hotel.ja)}&destination=${encodeURIComponent(p.query)}&travelmode=walking`;
+      p.embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(p.query)}&z=16&output=embed`;
       p.distanceM = haversine(hotel.loc, p.loc);
       p.distanceText = formatDistance(p.distanceM);
       p.walkMin = Math.max(1, Math.round(p.distanceM / 75));
     });
-    places.sort((a,b) => a.distanceM - b.distanceM);
+
+    const groups = {
+      existing: places.filter(p => p.sources.includes('existing')).sort((a,b)=>a.distanceM-b.distanceM),
+      video1: places.filter(p => p.sources.includes('video1') && !p.sources.includes('existing')).sort((a,b)=>a.distanceM-b.distanceM),
+      video2: places.filter(p => p.sources.includes('video2') && !p.sources.includes('existing') && !p.sources.includes('video1')).sort((a,b)=>a.distanceM-b.distanceM)
+    };
 
     const map = L.map('map', {zoomControl:true}).setView(hotel.loc, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
 
     const statusEl = document.getElementById('status');
-    const placesEl = document.getElementById('places');
     const detailName = document.getElementById('detail-name');
     const detailMeta = document.getElementById('detail-meta');
     const detailDesc = document.getElementById('detail-desc');
@@ -161,67 +217,70 @@
     const detailOpen = document.getElementById('detail-open');
     const detailRoute = document.getElementById('detail-route');
     const detailFocus = document.getElementById('detail-focus');
+    const detailChips = document.getElementById('detail-chips');
     const gmapsFrame = document.getElementById('gmaps-frame');
     const hotelOpen = document.getElementById('hotel-open');
     const hotelFocus = document.getElementById('hotel-focus');
 
     hotelOpen.href = hotel.mapsUrl;
-    hotelFocus.onclick = (e) => { e.preventDefault(); map.setView(hotel.loc, 16, {animate:true}); hotelMarker.openPopup(); };
+    hotelFocus.onclick = e => { e.preventDefault(); map.setView(hotel.loc, 16, {animate:true}); hotelMarker.openPopup(); };
 
     const markers = new Map();
     const cards = new Map();
+    const bounds = L.latLngBounds([]);
+    bounds.extend(hotel.loc);
     let selectedId = null;
     let routeLine = null;
 
-    const bounds = L.latLngBounds([]);
-    bounds.extend(hotel.loc);
+    const hotelIcon = L.divIcon({ className:'hotel-pin', html:'<div style="width:24px;height:24px;border-radius:50%;background:#f43f5e;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.4)">★</div>', iconSize:[24,24], iconAnchor:[12,12] });
+    const hotelMarker = L.marker(hotel.loc, {icon:hotelIcon}).addTo(map).bindPopup('<div class="popup-title">오리엔탈 호텔 후쿠오카 하카타 스테이션</div><div class="popup-desc">숙소 기준점</div><a class="btn hotel" href="'+hotel.mapsUrl+'" target="_blank" rel="noopener">Google Maps 열기</a>');
 
-    function badgeText(place){ return `위치 상태: ${place.accuracy} 매칭 · 호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`; }
-
-    const hotelIcon = L.divIcon({
-      className:'hotel-pin',
-      html:'<div style="width:24px;height:24px;border-radius:50%;background:#f43f5e;color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.4)">★</div>',
-      iconSize:[24,24], iconAnchor:[12,12]
-    });
-    const hotelMarker = L.marker(hotel.loc, {icon:hotelIcon}).addTo(map).bindPopup('<div class="popup-title">★ 오리엔탈 호텔 후쿠오카 하카타 스테이션</div><div class="popup-desc">숙소 기준점</div><a class="btn hotel" href="'+hotel.mapsUrl+'" target="_blank" rel="noopener">Google Maps 열기</a>');
-
-    function markerIcon(resolved){
-      const color = resolved ? '#22c55e' : '#f59e0b';
-      return L.divIcon({
-        className:'custom-pin',
-        html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`,
-        iconSize:[18,18], iconAnchor:[9,9]
-      });
+    function markerIcon(place){
+      const color = markerColor(place);
+      return L.divIcon({ className:'custom-pin', html:`<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`, iconSize:[18,18], iconAnchor:[9,9] });
     }
+
     function popupHtml(place){
       return `<div class="popup-title">${place.name}</div>
-              <div class="popup-desc">${place.type} · ${place.district}</div>
-              <div class="popup-desc">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>
-              <div class="popup-desc">${place.desc}</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <a class="btn" href="${place.mapsUrl}" target="_blank" rel="noopener">Google Maps</a>
-                <a class="btn secondary" href="${place.routeUrl}" target="_blank" rel="noopener">길찾기</a>
-              </div>`;
+        <div class="popup-desc">${place.type} · ${place.district}</div>
+        <div class="popup-desc">출처: ${sourceLabel(place)}</div>
+        <div class="popup-desc">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>
+        <div class="popup-desc">${place.desc}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn" href="${place.mapsUrl}" target="_blank" rel="noopener">Google Maps</a>
+          <a class="btn secondary" href="${place.routeUrl}" target="_blank" rel="noopener">길찾기</a>
+        </div>`;
     }
 
-    function renderCards(){
-      placesEl.innerHTML='';
-      places.forEach(place => {
-        const div = document.createElement('div');
-        div.className = 'place';
-        div.innerHTML = `<div class="name">${place.name}</div>
-                         <div class="sub">${place.type} · ${place.district}</div>
-                         <div class="mini">${place.desc}</div>
-                         <div class="dist">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>`;
-        div.addEventListener('click', () => selectPlace(place.id, true));
-        placesEl.appendChild(div);
-        cards.set(place.id, div);
+    function renderSection(elId, title, list, actionLabel, actionUrl, cls){
+      const el = document.getElementById(elId);
+      const cardsHtml = list.map(place => `
+        <div class="place" data-id="${place.id}">
+          <div class="name">${place.name}</div>
+          <div class="chips">${place.sources.map(chipHtml).join('')}</div>
+          <div class="sub">${place.type} · ${place.district}</div>
+          <div class="mini">${place.desc}</div>
+          <div class="dist">호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분</div>
+        </div>`).join('');
+      el.innerHTML = `
+        <div class="group-title">
+          <h2>${title}</h2>
+          <div class="count">${list.length}곳</div>
+        </div>
+        <div class="actions" style="margin-top:0;margin-bottom:10px">
+          <a class="btn ${cls}" href="${actionUrl}" target="_blank" rel="noopener">${actionLabel}</a>
+        </div>
+        <div class="places">${cardsHtml}</div>`;
+      el.querySelectorAll('.place').forEach(node => {
+        const id = node.dataset.id;
+        cards.set(id, node);
+        node.addEventListener('click', () => selectPlace(id, true));
       });
     }
 
     function renderMarkers(){
       places.forEach(place => {
-        const marker = L.marker(place.loc, {icon:markerIcon(place.resolved)}).addTo(map).bindPopup(popupHtml(place));
+        const marker = L.marker(place.loc, {icon:markerIcon(place)}).addTo(map).bindPopup(popupHtml(place));
         marker.on('click', () => selectPlace(place.id, false));
         markers.set(place.id, marker);
         bounds.extend(place.loc);
@@ -229,38 +288,48 @@
       map.fitBounds(bounds.pad(0.18));
     }
 
-    function drawRoute(place){
-      if (routeLine) map.removeLayer(routeLine);
-      routeLine = L.polyline([hotel.loc, place.loc], {color:'#f43f5e', weight:3, dashArray:'6 8', opacity:0.8}).addTo(map);
-    }
+    function drawRoute(place){ if (routeLine) map.removeLayer(routeLine); routeLine = L.polyline([hotel.loc, place.loc], {color:'#f43f5e', weight:3, dashArray:'6 8', opacity:0.8}).addTo(map); }
+
+    function badgeText(place){ return `위치 상태: ${place.accuracy} 매칭 · 출처 ${sourceLabel(place)} · 호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`; }
 
     function selectPlace(id, pan=true){
       const place = places.find(p => p.id === id);
-      if(!place) return;
+      if (!place) return;
       selectedId = id;
       detailName.textContent = place.name;
       detailMeta.textContent = `${place.type} · ${place.district}`;
-      detailDesc.textContent = `${place.desc} 호텔 기준 ${place.distanceText}, 도보 약 ${place.walkMin}분 정도로 보면 됩니다.`;
+      detailChips.innerHTML = place.sources.map(chipHtml).join('');
+      detailDesc.textContent = `${place.desc} 호텔 기준 ${place.distanceText}, 도보 약 ${place.walkMin}분 정도입니다.`;
       detailBadge.textContent = badgeText(place);
       detailOpen.href = place.mapsUrl;
       detailRoute.href = place.routeUrl;
-      detailFocus.onclick = (e) => { e.preventDefault(); focusPlace(place.id); };
+      detailFocus.onclick = e => { e.preventDefault(); focusPlace(place.id); };
       gmapsFrame.src = place.embedUrl;
-      cards.forEach((el,k) => el.classList.toggle('active', k===id));
       drawRoute(place);
+      cards.forEach((el,k) => {
+        el.classList.toggle('active', k === id);
+        if (k === id) {
+          const key = sourceKey(place);
+          el.style.borderColor = key === 'multi' ? '#a855f7' : markerColor(place);
+          el.style.boxShadow = `0 0 0 1px ${markerColor(place)}44 inset`;
+        } else {
+          el.style.borderColor = '#243041';
+          el.style.boxShadow = '';
+        }
+      });
       if (pan) focusPlace(id);
     }
 
     function focusPlace(id){
       const marker = markers.get(id);
-      if(!marker) return;
+      if (!marker) return;
       map.fitBounds(L.latLngBounds([hotel.loc, marker.getLatLng()]).pad(0.35), {animate:true});
       marker.openPopup();
     }
 
     async function geocodeOne(place){
       if (place.resolved) return true;
-      for (const q of place.geocodeQueries){
+      for (const q of place.geocodeQueries || []) {
         const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=ja,ko&q=${encodeURIComponent(q)}`;
         try {
           const res = await fetch(url, {headers:{'Accept':'application/json'}});
@@ -277,12 +346,11 @@
               place.walkMin = Math.max(1, Math.round(place.distanceM / 75));
               const old = markers.get(place.id);
               if (old) map.removeLayer(old);
-              const marker = L.marker(place.loc, {icon:markerIcon(true)}).addTo(map).bindPopup(popupHtml(place));
+              const marker = L.marker(place.loc, {icon:markerIcon(place)}).addTo(map).bindPopup(popupHtml(place));
               marker.on('click', () => selectPlace(place.id, false));
               markers.set(place.id, marker);
-              if (cards.get(place.id)) {
-                cards.get(place.id).querySelector('.dist').textContent = `호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`;
-              }
+              const card = cards.get(place.id);
+              if (card) card.querySelector('.dist').textContent = `호텔 기준 ${place.distanceText} · 도보 약 ${place.walkMin}분`;
               if (selectedId === place.id) selectPlace(place.id, false);
               return true;
             }
@@ -296,18 +364,22 @@
     async function refineAll(){
       let done = 0, exact = places.filter(p => p.resolved).length;
       statusEl.textContent = `기본 지도 준비 완료 · 정확 좌표 ${exact}/${places.length}`;
-      for (const place of places){
+      for (const place of places) {
         done += 1;
         statusEl.textContent = `좌표 보정 중… ${done}/${places.length} · 정확 ${exact}/${places.length}`;
         const before = place.resolved;
         const ok = await geocodeOne(place);
         if (!before && ok) exact += 1;
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 450));
       }
-      statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 거리/길찾기 모두 호텔 기준 반영`;
+      statusEl.textContent = `완료 · 정확 좌표 ${exact}/${places.length} · 호텔 기준 거리/길찾기/출처 색상 반영`;
     }
 
-    renderCards();
+    renderSection('section-existing', '기존 추가 맛집', groups.existing, '기존 맛집 기준 보기', '#', '');
+    renderSection('section-video1', '영상 1 맛집', groups.video1, '영상 1 열기', sourceMeta.video1.url, 'video1');
+    renderSection('section-video2', '영상 2 맛집', groups.video2, '영상 2 열기', sourceMeta.video2.url, 'video2');
+    document.querySelector('#section-existing .actions').style.display='none';
+
     renderMarkers();
     gmapsFrame.src = hotel.embedUrl;
     selectPlace(places[0].id, false);
