@@ -487,6 +487,9 @@
       if (mode === 'food') {
         setTimeout(() => foodMap.invalidateSize(), 50);
       } else {
+        mainItinerary.style.display = 'flex';
+        mainItinerary.style.flexDirection = 'column';
+        document.getElementById('itinerary-map').style.height = '520px';
         setTimeout(() => {
           itineraryMap.invalidateSize();
           renderItinerary(currentDay);
