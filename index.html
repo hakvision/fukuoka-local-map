@@ -483,8 +483,14 @@
       mainItinerary.classList.toggle('hidden', foodActive);
       mainFoodFukuoka.classList.toggle('hidden', !foodActive || foodMode !== 'fukuoka');
       mainFoodNagasaki.classList.toggle('hidden', !foodActive || foodMode !== 'nagasaki');
-      if (mode === 'food') foodMap.invalidateSize();
-      else itineraryMap.invalidateSize();
+      if (mode === 'food') {
+        setTimeout(() => foodMap.invalidateSize(), 50);
+      } else {
+        setTimeout(() => {
+          itineraryMap.invalidateSize();
+          renderItinerary(currentDay);
+        }, 80);
+      }
     }
 
     function setFoodCity(city){
