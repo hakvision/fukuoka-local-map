@@ -340,7 +340,7 @@
         zoom:13,
         mapNote:'평화공원 → 중화거리/데지마 → 그라버원 → 하마노마치 → 이나사야마 순으로 왕복을 줄인 최적 동선입니다.',
         stops:[
-          {id:'d0611-1',time:'06:30',duration:'30분',name:'호텔 출발 → 하카타 버스터미널',mini:'도보/택시',desc:'일찍 움직여야 나가사키 체류 시간을 최대화할 수 있습니다.',loc:[33.5906,130.4219],mapsQuery:'Hakata Bus Terminal',type:'bus'},
+          {id:'d0611-1',time:'06:30',duration:'30분',name:'호텔 출발 → 하카타 버스터미널',mini:'도보/택시',desc:'일찍 움직여야 나가사키 체류 시간을 최대화할 수 있습니다.',loc:[33.5906,130.4219],mapFocusLoc:[32.7503,129.8777],mapHidden:true,mapsQuery:'Hakata Bus Terminal',type:'bus'},
           {id:'d0611-2',time:'07:20',duration:'약 2시간 10분',name:'후쿠오카 → 나가사키 고속버스(큐슈호)',mini:'공식 소요시간 2시간 7분 기준',desc:'서철 공식 페이지 기준 후쿠오카(텐진)~나가사키역앞 최속 2시간 7분, 예약제입니다.',loc:[32.7503,129.8777],mapsQuery:'Nagasaki Station',type:'bus'},
           {id:'d0611-3',time:'09:50',duration:'50분',name:'평화공원 + 우라카미 천주당',mini:'오전 역사 코스',desc:'히제이 영상에서 먼저 소개된 핵심 역사 구역. 두 곳이 가깝게 붙어 있어 오전 효율이 좋습니다.',loc:[32.7796,129.8655],mapsQuery:'Nagasaki Peace Park',type:'sight'},
           {id:'d0611-4',time:'11:30',duration:'60~75분',name:'데지마 와프 or 중화거리 점심',mini:'사라우동/짬뽕 후보',desc:'점심은 나가사키 대표 메뉴로 해결. 사라우동을 우선 후보로 두는 구성이 좋습니다.',loc:[32.7417,129.8718],mapsQuery:'Dejima Wharf Nagasaki',type:'food'},
@@ -714,7 +714,7 @@
       const stop = day.stops.find(s => s.id === stopId);
       if (!stop) return;
       document.querySelectorAll('.timeline-stop').forEach(node => node.classList.toggle('active', node.dataset.id === stopId));
-      itineraryMap.setView(stop.loc, Math.max(day.zoom || 13, 14), {animate:true});
+      itineraryMap.setView(stop.mapFocusLoc || stop.loc, Math.max(day.zoom || 13, 14), {animate:true});
       const marker = itineraryMarkers.find(m => m._stopId === stopId);
       if (marker) marker.openPopup();
     }
@@ -724,6 +724,7 @@
       const day = itineraryDays[dayKey];
       const displayStops = buildDisplayStops(day.stops);
       document.getElementById('main-itinerary').style.display = 'block';
+      itineraryMap.invalidateSize(false);
       document.getElementById('day-btn-0610').classList.toggle('active', dayKey === '0610');
       document.getElementById('day-btn-0611').classList.toggle('active', dayKey === '0611');
       document.getElementById('day-btn-0612').classList.toggle('active', dayKey === '0612');
@@ -754,8 +755,9 @@
       `).join('');
 
       clearItineraryMap();
+      const mapStops = displayStops.filter(stop => !stop.mapHidden);
       const coords = [];
-      displayStops.forEach((stop, idx) => {
+      mapStops.forEach((stop, idx) => {
         const color = itineraryMarkerColor(stop);
         const icon = L.divIcon({ className:'trip-pin', html:`<div style="width:26px;height:26px;border-radius:50%;background:${color};color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.35)">${idx+1}</div>`, iconSize:[26,26], iconAnchor:[13,13] });
         const marker = L.marker(stop.displayLoc || stop.loc, {icon}).addTo(itineraryMap).bindPopup(`<div class="popup-title">${idx+1}. ${stop.name}</div><div class="popup-desc">${stop.time} · ${stop.duration}</div><div class="popup-desc">${stop.desc}</div><a class="btn trip" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.mapsQuery || stop.name)}" target="_blank" rel="noopener">Google Maps</a>`);
@@ -766,6 +768,7 @@
       });
       itineraryRoute = L.polyline(coords, {color:'#14b8a6', weight:4, opacity:0.85, dashArray:'10 8'}).addTo(itineraryMap);
       itineraryMap.fitBounds(L.latLngBounds(coords).pad(0.18));
+      itineraryMap.invalidateSize(false);
       focusTimelineStop(displayStops[0].id);
     }
 
