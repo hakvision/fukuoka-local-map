@@ -67,7 +67,7 @@
     .naga-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     .naga-card,.candidate-card,.timeline-stop{border:1px solid var(--line);background:#111827;border-radius:16px;padding:14px}
     .naga-card h3,.candidate-card h3,.timeline-stop h3{margin:0 0 8px;font-size:16px}
-    .itinerary-layout{display:flex;flex-direction:column;min-height:100vh}
+    .itinerary-layout{display:block;min-height:100vh}
     .itinerary-map-footer{padding:14px;gap:10px}
     .timeline{display:flex;flex-direction:column;gap:10px}
     .timeline-stop{cursor:pointer}
@@ -215,7 +215,7 @@
     </main>
 
     <main id="main-itinerary" class="itinerary-layout hidden">
-      <div id="itinerary-map"></div>
+      <div id="itinerary-map" style="height:520px;min-height:520px;"></div>
       <div class="itinerary-map-footer">
         <div class="itinerary-map-head">일정 탭 지도 · 선택한 날짜의 동선과 후보 포인트를 시각적으로 표시합니다.</div>
         <div id="trip-map-note" class="inline-note">6월 10일 일정 로드 중…</div>
