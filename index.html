@@ -421,6 +421,8 @@
     const foodMap = L.map('food-map', {zoomControl:true}).setView(hotel.loc, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(foodMap);
     const itineraryMap = L.map('itinerary-map', {zoomControl:true}).setView([33.5906,130.4219], 13);
+    document.getElementById('itinerary-map').style.height = '520px';
+    document.getElementById('itinerary-map').style.minHeight = '520px';
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(itineraryMap);
 
     const tabFood = document.getElementById('tab-food');
@@ -693,6 +695,9 @@
     function renderItinerary(dayKey){
       currentDay = dayKey;
       const day = itineraryDays[dayKey];
+      document.getElementById('main-itinerary').style.display = 'block';
+      document.getElementById('itinerary-map').style.height = '520px';
+      document.getElementById('itinerary-map').style.minHeight = '520px';
       document.getElementById('day-btn-0610').classList.toggle('active', dayKey === '0610');
       document.getElementById('day-btn-0611').classList.toggle('active', dayKey === '0611');
       document.getElementById('day-btn-0612').classList.toggle('active', dayKey === '0612');
