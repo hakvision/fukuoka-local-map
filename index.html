@@ -12,11 +12,11 @@
       --trip:#14b8a6; --naga:#f97316; --muted:#0f172a;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
-    body{min-height:100vh}
+    html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+    body{min-height:100vh;height:100vh;overflow:hidden}
     a{color:inherit}
-    .app{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
-    .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto}
+    .app{display:grid;grid-template-columns:420px 1fr;min-height:100vh;height:100vh;overflow:hidden}
+    .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto;height:100vh}
     h1{margin:0 0 8px;font-size:24px}
     h2{margin:0 0 8px;font-size:18px}
     .desc,.summary{font-size:14px;color:var(--sub);line-height:1.55}
@@ -56,7 +56,7 @@
     .place.active{box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
     .main{display:grid;grid-template-rows:1fr 290px;min-height:100vh}
     #food-map,#itinerary-map{height:100%;width:100%}
-    #itinerary-map{height:520px;min-height:520px;flex:1 1 auto}
+    #itinerary-map{height:100%;min-height:100%;width:100%}
     .gmaps-wrap,.itinerary-map-footer{border-top:1px solid var(--line);background:#020617;display:flex;flex-direction:column}
     .gmaps-head,.itinerary-map-head{padding:10px 14px;font-size:13px;color:var(--sub);border-bottom:1px solid var(--line)}
     #gmaps-frame{width:100%;height:100%;border:0;background:#0f172a}
@@ -67,8 +67,8 @@
     .naga-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
     .naga-card,.candidate-card,.timeline-stop{border:1px solid var(--line);background:#111827;border-radius:16px;padding:14px}
     .naga-card h3,.candidate-card h3,.timeline-stop h3{margin:0 0 8px;font-size:16px}
-    .itinerary-layout{display:block;min-height:100vh}
-    .itinerary-map-footer{padding:14px;gap:10px}
+    .itinerary-layout{position:relative;display:block;min-height:100vh;height:100vh;background:#020617}
+    .itinerary-map-footer{position:absolute;left:14px;right:14px;bottom:14px;z-index:500;padding:12px 14px;gap:8px;border:1px solid rgba(148,163,184,.22);border-radius:14px;background:rgba(2,6,23,.82);backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.22)}
     .timeline{display:flex;flex-direction:column;gap:10px}
     .timeline-stop{cursor:pointer}
     .timeline-stop.active{border-color:#14b8a6;box-shadow:0 0 0 1px rgba(20,184,166,.35) inset}
@@ -78,9 +78,14 @@
     .candidate-card li+li{margin-top:4px}
     .inline-note{font-size:12px;color:#94a3b8}
     @media (max-width: 980px){
+      body{height:auto;overflow:auto}
       .app{grid-template-columns:1fr;grid-template-rows:auto auto}
+      .app{height:auto;overflow:visible}
       .sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}
-      .main,.itinerary-layout{order:2;min-height:unset;grid-template-rows:58vh 320px}
+      .sidebar{height:auto}
+      .main{order:2;min-height:unset;grid-template-rows:58vh 320px}
+      .itinerary-layout{order:2;min-height:70vh;height:70vh}
+      .itinerary-map-footer{left:10px;right:10px;bottom:10px}
       .naga-layout{padding:14px}
     }
   </style>
@@ -215,7 +220,7 @@
     </main>
 
     <main id="main-itinerary" class="itinerary-layout hidden">
-      <div id="itinerary-map" style="height:520px;min-height:520px;"></div>
+      <div id="itinerary-map"></div>
       <div class="itinerary-map-footer">
         <div class="itinerary-map-head">일정 탭 지도 · 선택한 날짜의 동선과 후보 포인트를 시각적으로 표시합니다.</div>
         <div id="trip-map-note" class="inline-note">6월 10일 일정 로드 중…</div>
@@ -329,11 +334,11 @@
       '0611': {
         title:'6월 11일 · 나가사키 버스 당일치기',
         meta:'아침 일찍 출발 → 저녁 늦게 복귀',
-        summary:'버스 왕복 전제라 사세보·운젠까지 욕심내면 이동 시간이 너무 큽니다. 히제이 영상 기준으로는 나가사키 시내 핵심만 뽑는 편이 훨씬 완성도가 높습니다.',
+        summary:'버스 왕복 전제에서는 사세보·운젠까지 욕심내지 않고, 북쪽 평화공원에서 시작해 남쪽 그라버원으로 내려온 뒤 다시 시내·야경으로 마감하는 일방향 동선이 가장 효율적입니다.',
         tags:['버스 당일치기','나가사키 시내 집중','야경 포함 가능'],
         mapCenter:[32.7448,129.8737],
         zoom:13,
-        mapNote:'후쿠오카→나가사키 장거리 버스는 지도에 모두 표시하지 않고, 현지 핵심 동선만 표시했습니다.',
+        mapNote:'평화공원 → 중화거리/데지마 → 그라버원 → 하마노마치 → 이나사야마 순으로 왕복을 줄인 최적 동선입니다.',
         stops:[
           {id:'d0611-1',time:'06:30',duration:'30분',name:'호텔 출발 → 하카타 버스터미널',mini:'도보/택시',desc:'일찍 움직여야 나가사키 체류 시간을 최대화할 수 있습니다.',loc:[33.5906,130.4219],mapsQuery:'Hakata Bus Terminal',type:'bus'},
           {id:'d0611-2',time:'07:20',duration:'약 2시간 10분',name:'후쿠오카 → 나가사키 고속버스(큐슈호)',mini:'공식 소요시간 2시간 7분 기준',desc:'서철 공식 페이지 기준 후쿠오카(텐진)~나가사키역앞 최속 2시간 7분, 예약제입니다.',loc:[32.7503,129.8777],mapsQuery:'Nagasaki Station',type:'bus'},
@@ -354,18 +359,18 @@
       '0612': {
         title:'6월 12일 · 후쿠오카 시내 핵심 1일차',
         meta:'하카타·기온·나카스·텐진 중심',
-        summary:'히제이 후쿠오카 영상 기준으로 가장 밀도 높은 구간입니다. 역사/시장/쇼핑/야경 감성을 하루에 묶는 도심형 코스입니다.',
+        summary:'하카타에서 시작해 기온·캐널·카와바타를 거쳐 텐진·다이묘로 자연스럽게 북상하는 동선이라, 되돌아가는 시간을 줄인 도심 최적 루트입니다.',
         tags:['도심 집중','도보+지하철','첫 본격 시내일'],
         mapCenter:[33.5898,130.4075],
         zoom:13,
-        mapNote:'하카타에서 시작해 나카스와 텐진까지 북상하는 동선입니다.',
+        mapNote:'하카타 → 기온 → 캐널 → 카와바타 → 텐진/다이묘 → 야쿠인 → 나카스로 이어지는 북상형 동선입니다.',
         stops:[
           {id:'d0612-1',time:'09:00',duration:'70분',name:'하카타역 + JR하카타시티',mini:'기념품/식당가 체크',desc:'하카타시티, 마잉구, 지하상점가를 먼저 익혀두면 남은 일정이 훨씬 편해집니다.',loc:[33.5898,130.4207],mapsQuery:'JR Hakata City',type:'sight'},
           {id:'d0612-2',time:'10:20',duration:'70분',name:'구시다 신사 + 하카타 마치야 후루사토관',mini:'기온 역사 코스',desc:'히제이 영상의 하카타 역사/전통 파트 핵심입니다.',loc:[33.5933,130.4108],mapsQuery:'Kushida Shrine Fukuoka',type:'sight'},
           {id:'d0612-3',time:'11:40',duration:'80분',name:'캐널시티 하카타 + 점심',mini:'라멘 스타디움 후보',desc:'복합몰 구경과 점심을 한 번에 해결하기 좋은 구간.',loc:[33.5897,130.4106],mapsQuery:'Canal City Hakata',type:'food'},
           {id:'d0612-4',time:'13:20',duration:'60분',name:'카와바타 상점가 + 리버레인',mini:'쇼핑/실내 동선',desc:'비가 와도 움직이기 좋고, 하카타·텐진 사이 감성을 연결하는 포인트.',loc:[33.5946,130.4098],mapsQuery:'Kawabata Shopping Arcade Fukuoka',type:'shop'},
           {id:'d0612-5',time:'14:40',duration:'120분',name:'텐진 중앙공원 → 케고공원 → 케고신사 → 다이묘',mini:'후쿠오카 핵심 번화가',desc:'영상에서 텐진과 다이묘를 후쿠오카 중심 번화가로 길게 설명한 구간입니다.',loc:[33.5902,130.3997],mapsQuery:'Tenjin Central Park Fukuoka',type:'sight'},
-          {id:'d0612-6',time:'17:20',duration:'80분',name:'야쿠인 카페/휴식 or 오호리공원으로 이동',mini:'체력 조절 구간',desc:'저녁 전에 잠깐 쉬어가면 밤 일정 밀도가 좋아집니다.',loc:[33.5793,130.4013],mapsQuery:'Yakuin Station Fukuoka',type:'rest'},
+          {id:'d0612-6',time:'17:20',duration:'80분',name:'야쿠인 카페/휴식',mini:'체력 조절 구간',desc:'텐진·다이묘에서 바로 이어지는 휴식 구간으로 두면 동선이 가장 매끄럽습니다.',loc:[33.5793,130.4013],mapsQuery:'Yakuin Station Fukuoka',type:'rest'},
           {id:'d0612-7',time:'19:00',duration:'90분',name:'나카스 야타이 / 강변 야식',mini:'후쿠오카 밤 감성',desc:'후쿠오카 첫 풀데이 밤은 나카스 감성으로 마무리하는 편이 좋습니다.',loc:[33.5907,130.4047],mapsQuery:'Nakasu Yatai Fukuoka',type:'food'}
         ],
         candidates:[
@@ -376,7 +381,7 @@
       '0613': {
         title:'6월 13일 · 후쿠오카 바다/근교 선택형 2일차',
         meta:'기본안은 모모치·오호리, 대체안은 다자이후',
-        summary:'영상 기준으로 후쿠오카 마지막 날은 바다 라인 또는 근교 1곳을 넣는 편이 좋습니다. 무리하게 두 개를 다 넣기보다 하나를 확실히 고르는 구성이 낫습니다.',
+        summary:'마지막 날 기본안은 오호리에서 모모치 바다 라인으로 서쪽 이동 후 다시 시내로 복귀하는 단순 동선입니다. 다자이후는 아예 대체안으로 분리해 선택만 남겨뒀습니다.',
         tags:['선택형 일정','바다 vs 근교','마지막 날'],
         mapCenter:[33.5865,130.3620],
         zoom:12,
@@ -421,8 +426,6 @@
     const foodMap = L.map('food-map', {zoomControl:true}).setView(hotel.loc, 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(foodMap);
     const itineraryMap = L.map('itinerary-map', {zoomControl:true}).setView([33.5906,130.4219], 13);
-    document.getElementById('itinerary-map').style.height = '520px';
-    document.getElementById('itinerary-map').style.minHeight = '520px';
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(itineraryMap);
 
     const tabFood = document.getElementById('tab-food');
@@ -489,9 +492,6 @@
       if (mode === 'food') {
         setTimeout(() => foodMap.invalidateSize(), 50);
       } else {
-        mainItinerary.style.display = 'flex';
-        mainItinerary.style.flexDirection = 'column';
-        document.getElementById('itinerary-map').style.height = '520px';
         setTimeout(() => {
           itineraryMap.invalidateSize();
           renderItinerary(currentDay);
@@ -673,6 +673,33 @@
       return '#14b8a6';
     }
 
+    function offsetLatLng(loc, ringIndex, totalInGroup){
+      if (totalInGroup <= 1) return loc;
+      const angle = (Math.PI * 2 * ringIndex) / totalInGroup;
+      const radiusMeters = 36 + (Math.floor(ringIndex / 6) * 14);
+      const latOffset = (radiusMeters / 111320) * Math.sin(angle);
+      const lonOffset = (radiusMeters / (111320 * Math.cos(loc[0] * Math.PI / 180))) * Math.cos(angle);
+      return [loc[0] + latOffset, loc[1] + lonOffset];
+    }
+
+    function buildDisplayStops(stops){
+      const groups = [];
+      const thresholdMeters = 85;
+      const assignments = stops.map(stop => {
+        let matched = groups.find(group => haversine(group.base, stop.loc) <= thresholdMeters);
+        if (!matched) {
+          matched = { base: stop.loc, items: [] };
+          groups.push(matched);
+        }
+        matched.items.push(stop.id);
+        return { stop, group: matched };
+      });
+      return assignments.map(({ stop, group }) => ({
+        ...stop,
+        displayLoc: offsetLatLng(stop.loc, group.items.indexOf(stop.id), group.items.length)
+      }));
+    }
+
     function dayTagHtml(tag){ return `<span class="tag trip">${tag}</span>`; }
 
     function clearItineraryMap(){
@@ -695,9 +722,8 @@
     function renderItinerary(dayKey){
       currentDay = dayKey;
       const day = itineraryDays[dayKey];
+      const displayStops = buildDisplayStops(day.stops);
       document.getElementById('main-itinerary').style.display = 'block';
-      document.getElementById('itinerary-map').style.height = '520px';
-      document.getElementById('itinerary-map').style.minHeight = '520px';
       document.getElementById('day-btn-0610').classList.toggle('active', dayKey === '0610');
       document.getElementById('day-btn-0611').classList.toggle('active', dayKey === '0611');
       document.getElementById('day-btn-0612').classList.toggle('active', dayKey === '0612');
@@ -706,9 +732,9 @@
       tripDayMeta.textContent = day.meta;
       tripDaySummary.textContent = day.summary;
       tripDayTags.innerHTML = day.tags.map(dayTagHtml).join('');
-      tripDayCount.textContent = `${day.stops.length}개 스텝`;
+      tripDayCount.textContent = `${day.stops.length}개 스텝 · 겹치는 마커 자동 분산`;
       tripMapNote.textContent = day.mapNote;
-      timelineEl.innerHTML = day.stops.map(stop => `
+      timelineEl.innerHTML = displayStops.map(stop => `
         <article class="timeline-stop" data-id="${stop.id}">
           <div class="timeline-time">${stop.time} · ${stop.duration}</div>
           <h3>${stop.name}</h3>
@@ -729,18 +755,18 @@
 
       clearItineraryMap();
       const coords = [];
-      day.stops.forEach((stop, idx) => {
+      displayStops.forEach((stop, idx) => {
         const color = itineraryMarkerColor(stop);
-        const icon = L.divIcon({ className:'trip-pin', html:`<div style="width:22px;height:22px;border-radius:50%;background:${color};color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.35)">${idx+1}</div>`, iconSize:[22,22], iconAnchor:[11,11] });
-        const marker = L.marker(stop.loc, {icon}).addTo(itineraryMap).bindPopup(`<div class="popup-title">${stop.name}</div><div class="popup-desc">${stop.time} · ${stop.duration}</div><div class="popup-desc">${stop.desc}</div><a class="btn trip" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.mapsQuery || stop.name)}" target="_blank" rel="noopener">Google Maps</a>`);
+        const icon = L.divIcon({ className:'trip-pin', html:`<div style="width:26px;height:26px;border-radius:50%;background:${color};color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:2px solid white;box-shadow:0 2px 10px rgba(0,0,0,.35)">${idx+1}</div>`, iconSize:[26,26], iconAnchor:[13,13] });
+        const marker = L.marker(stop.displayLoc || stop.loc, {icon}).addTo(itineraryMap).bindPopup(`<div class="popup-title">${idx+1}. ${stop.name}</div><div class="popup-desc">${stop.time} · ${stop.duration}</div><div class="popup-desc">${stop.desc}</div><a class="btn trip" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.mapsQuery || stop.name)}" target="_blank" rel="noopener">Google Maps</a>`);
         marker._stopId = stop.id;
         marker.on('click', () => focusTimelineStop(stop.id));
         itineraryMarkers.push(marker);
-        coords.push(stop.loc);
+        coords.push(stop.displayLoc || stop.loc);
       });
-      itineraryRoute = L.polyline(coords, {color:'#14b8a6', weight:4, opacity:0.8}).addTo(itineraryMap);
+      itineraryRoute = L.polyline(coords, {color:'#14b8a6', weight:4, opacity:0.85, dashArray:'10 8'}).addTo(itineraryMap);
       itineraryMap.fitBounds(L.latLngBounds(coords).pad(0.18));
-      focusTimelineStop(day.stops[0].id);
+      focusTimelineStop(displayStops[0].id);
     }
 
     tabFood.onclick = () => setMainMode('food');
