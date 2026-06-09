@@ -16,6 +16,10 @@
     .app{display:grid;grid-template-columns:420px 1fr;min-height:100vh}
     .sidebar{background:rgba(17,24,39,.98);border-right:1px solid var(--line);padding:16px;overflow:auto}
     h1{margin:0 0 8px;font-size:24px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+    .tab-btn{appearance:none;border:1px solid var(--line);background:#0f172a;color:var(--sub);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer}
+    .tab-btn.active{background:#082f49;color:#e0f2fe;border-color:rgba(56,189,248,.35)}
+    .tab-panel.hidden,.main.hidden{display:none}
     .desc{font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:12px}
     .status{font-size:12px;color:#93c5fd;margin-bottom:10px}
     .legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
@@ -55,6 +59,14 @@
     .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0f172a;color:var(--text)}
     .popup-title{font-weight:800;margin-bottom:6px}
     .popup-desc{font-size:13px;color:var(--sub);line-height:1.45;margin-bottom:8px}
+    .naga-layout{display:flex;flex-direction:column;gap:14px;padding:18px;overflow:auto;background:#020617}
+    .naga-hero,.naga-section{border:1px solid var(--line);background:#0f172a;border-radius:18px;padding:16px}
+    .naga-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    .naga-card{border:1px solid var(--line);background:#111827;border-radius:16px;padding:14px}
+    .naga-card h3{margin:0 0 8px;font-size:16px}
+    .naga-card p{margin:0 0 8px;color:var(--sub);font-size:13px;line-height:1.55}
+    .naga-card .mini{font-size:12px;color:#93c5fd}
+    .naga-card .tag{display:inline-block;margin:0 6px 6px 0;padding:4px 8px;border-radius:999px;font-size:11px;background:#172033;color:#cbd5e1;border:1px solid #334155}
     @media (max-width: 980px){.app{grid-template-columns:1fr;grid-template-rows:auto 58vh 320px}.sidebar{order:1;border-right:0;border-bottom:1px solid var(--line)}.main{order:2;grid-template-rows:58vh 320px;min-height:unset}}
   </style>
 </head>
@@ -62,50 +74,99 @@
   <div class="app">
     <aside class="sidebar">
       <h1>후쿠오카 맛집 지도</h1>
-      <div class="desc">기존 명물 맛집 + 강나미 영상 + 더들리 영상을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
-      <div id="status" class="status">초기화 중…</div>
-
-      <div class="legend">
-        <span class="pill">★ 호텔</span>
-        <span class="pill">초록 = 기존 명물</span>
-        <span class="pill">파랑 = 강나미</span>
-        <span class="pill">주황 = 더들리</span>
-        <span class="pill">보라 = 여러 출처 중복</span>
+      <div class="tabs">
+        <button id="tab-btn-fukuoka" class="tab-btn active" type="button">후쿠오카</button>
+        <button id="tab-btn-nagasaki" class="tab-btn" type="button">나가사키</button>
       </div>
 
-      <section class="hotel-box">
-        <h2>오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
-        <div class="meta">기준 숙소 · 별표 마커</div>
-        <div class="summary">모든 맛집 거리는 이 호텔 기준입니다. 클릭한 가게마다 Google Maps 길찾기 링크도 넣어뒀습니다.</div>
-        <div class="actions">
-          <a id="hotel-open" class="btn hotel" target="_blank" rel="noopener">Google Maps 열기</a>
-          <a id="hotel-focus" class="btn secondary" href="#">호텔 위치 보기</a>
-        </div>
-      </section>
+      <div id="tab-fukuoka-sidebar" class="tab-panel">
+        <div class="desc">기존 명물 맛집 + 강나미 영상 + 더들리 영상을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
+        <div id="status" class="status">초기화 중…</div>
 
-      <section class="detail">
-        <h2 id="detail-name">맛집 선택</h2>
-        <div id="detail-meta" class="meta">지도를 누르거나 목록에서 가게를 선택하세요.</div>
-        <div id="detail-chips" class="chips"></div>
-        <div id="detail-desc" class="summary">선택한 가게의 설명, 출처, 호텔 기준 거리, 길찾기 링크를 보여줍니다.</div>
-        <div id="detail-badge" class="badge">위치 상태: 준비 중</div>
-        <div class="actions">
-          <a id="detail-open" class="btn" href="#" target="_blank" rel="noopener">Google Maps 열기</a>
-          <a id="detail-route" class="btn secondary" href="#" target="_blank" rel="noopener">호텔에서 길찾기</a>
-          <a id="detail-focus" class="btn hotel" href="#">지도에서 보기</a>
+        <div class="legend">
+          <span class="pill">★ 호텔</span>
+          <span class="pill">초록 = 기존 명물</span>
+          <span class="pill">파랑 = 강나미</span>
+          <span class="pill">주황 = 더들리</span>
+          <span class="pill">보라 = 여러 출처 중복</span>
         </div>
-      </section>
 
-      <section id="section-existing" class="section"></section>
-      <section id="section-video1" class="section"></section>
-      <section id="section-video2" class="section"></section>
+        <section class="hotel-box">
+          <h2>오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
+          <div class="meta">기준 숙소 · 별표 마커</div>
+          <div class="summary">모든 맛집 거리는 이 호텔 기준입니다. 클릭한 가게마다 Google Maps 길찾기 링크도 넣어뒀습니다.</div>
+          <div class="actions">
+            <a id="hotel-open" class="btn hotel" target="_blank" rel="noopener">Google Maps 열기</a>
+            <a id="hotel-focus" class="btn secondary" href="#">호텔 위치 보기</a>
+          </div>
+        </section>
+
+        <section class="detail">
+          <h2 id="detail-name">맛집 선택</h2>
+          <div id="detail-meta" class="meta">지도를 누르거나 목록에서 가게를 선택하세요.</div>
+          <div id="detail-chips" class="chips"></div>
+          <div id="detail-desc" class="summary">선택한 가게의 설명, 출처, 호텔 기준 거리, 길찾기 링크를 보여줍니다.</div>
+          <div id="detail-badge" class="badge">위치 상태: 준비 중</div>
+          <div class="actions">
+            <a id="detail-open" class="btn" href="#" target="_blank" rel="noopener">Google Maps 열기</a>
+            <a id="detail-route" class="btn secondary" href="#" target="_blank" rel="noopener">호텔에서 길찾기</a>
+            <a id="detail-focus" class="btn hotel" href="#">지도에서 보기</a>
+          </div>
+        </section>
+
+        <section id="section-existing" class="section"></section>
+        <section id="section-video1" class="section"></section>
+        <section id="section-video2" class="section"></section>
+      </div>
+
+      <div id="tab-nagasaki-sidebar" class="tab-panel hidden">
+        <div class="desc">아일랜드 트래블러 영상 기준으로 나가사키에서 가야 하는 곳과 먹어야 하는 곳을 나눠 정리했습니다.</div>
+        <section class="hotel-box">
+          <h2>나가사키 가이드</h2>
+          <div class="meta">출처 · 아일랜드 트래블러</div>
+          <div class="summary">영상에서 특히 추천한 지역·관광 포인트·로컬 음식 위주로 묶었습니다. 후쿠오카처럼 지도형이 아니라 여행 탭형 가이드로 추가했습니다.</div>
+          <div class="actions">
+            <a class="btn video2" href="https://youtu.be/xhEzD97N9Bg?si=E9Jns_Ymvle_lcOY" target="_blank" rel="noopener">영상 열기</a>
+          </div>
+        </section>
+      </div>
     </aside>
 
-    <main class="main">
+    <main id="main-fukuoka" class="main">
       <div id="map"></div>
       <div class="gmaps-wrap">
         <div class="gmaps-head">선택한 장소의 Google Maps 미리보기</div>
         <iframe id="gmaps-frame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </main>
+
+    <main id="main-nagasaki" class="main hidden">
+      <div class="naga-layout">
+        <section class="naga-hero">
+          <h2 style="margin:0 0 8px;font-size:24px">나가사키 탭</h2>
+          <div class="summary">영상에서 강조한 핵심은 “짧은 일정이면 몇 군데만 확실하게 고르기”였어요. 그래서 관광 포인트와 맛집을 따로 나눠, 바로 일정에 넣기 쉽게 정리했습니다.</div>
+          <div class="actions">
+            <span class="pill">관광지와 맛집 분리</span>
+            <span class="pill">운젠 · 사세보 · 나가사키 시내 중심</span>
+            <span class="pill">출처 = 아일랜드 트래블러</span>
+          </div>
+        </section>
+
+        <section class="naga-section">
+          <div class="group-title">
+            <h2>가야 하는 곳</h2>
+            <div class="count" id="naga-go-count"></div>
+          </div>
+          <div id="naga-go-grid" class="naga-grid"></div>
+        </section>
+
+        <section class="naga-section">
+          <div class="group-title">
+            <h2>맛집 / 먹어야 하는 것</h2>
+            <div class="count" id="naga-food-count"></div>
+          </div>
+          <div id="naga-food-grid" class="naga-grid"></div>
+        </section>
       </div>
     </main>
   </div>
@@ -178,6 +239,30 @@
       video2: {label:'더들리', color:'var(--video2)', cls:'video2', url:'https://youtu.be/hFfFzE1kzts?si=dIFj7JH1zp5bxQLK'}
     };
 
+    const nagasakiGo = [
+      {name:'오란다자카', area:'나가사키 시내', desc:'19세기 서양인 거주지 분위기와 언덕 도시 감성이 잘 살아 있는 대표 산책 코스.', tags:['산책','이국적 거리','필수 코스']},
+      {name:'그라버원', area:'나가사키 시내', desc:'글로버 저택 일대의 대표 관광지. 스카이로드 엘리베이터를 타고 올라가 시내 풍경까지 함께 보는 코스로 추천.', tags:['대표 관광지','전망','역사 건물']},
+      {name:'이나사야마 전망대', area:'나가사키 시내', desc:'로프웨이로 올라가 보는 나가사키 야경 포인트. 밤에 가장 입체적인 도시 뷰를 느끼기 좋다고 소개됨.', tags:['야경','전망대','로프웨이']},
+      {name:'신치 중화거리', area:'나가사키 시내', desc:'차이나타운 자체 규모는 작아서 짧은 일정이면 길게 볼 필요는 없고, 낮에 간식 위주로 가볍게 들르는 정도를 추천.', tags:['차이나타운','간식','짧게 보기']},
+      {name:'쿠주쿠시마', area:'사세보', desc:'208개 섬이 이어지는 다도해 국립공원 풍경이 핵심. 사세보 쪽 자연 스폿으로 같이 묶기 좋은 곳.', tags:['자연','사세보','풍경']},
+      {name:'하우스텐보스', area:'사세보', desc:'튤립 시즌(3~4월), 장미 시즌(5월), 크리스마스 시즌처럼 시즌감이 있을 때 특히 추천된 테마파크.', tags:['테마파크','계절 추천','사세보']},
+      {name:'운젠 지옥', area:'운젠', desc:'나가사키에서 꼭 봐야 할 강한 화산 지형 포인트. 유황 냄새와 증기가 가득한 데크 산책 코스로 소개됨.', tags:['온천지대','자연','운젠 핵심']},
+      {name:'카이 운젠', area:'운젠', desc:'운젠 지역 숙소 추천 포인트로 등장. 신축 료칸 감성과 식사 퀄리티가 하이라이트로 소개됨.', tags:['료칸','온천 숙소','운젠']}
+    ];
+
+    const nagasakiFood = [
+      {name:'소슈이(蘇州林 계열로 소개된 짬뽕/사라우동 추천집)', area:'나가사키역 카모메시장 1층', desc:'영상에서 시카이로보다 더 추천한다고 직접 언급한 집. 특히 얇은 면의 사라우동 호소멘을 강력 추천.', tags:['짬뽕','사라우동','강추']},
+      {name:'사라우동', area:'나가사키 로컬 푸드', desc:'로컬들이 특히 좋아하는 메뉴라고 소개. 얇은 면/굵은 면 두 버전이 있고 둘 다 매력적이라고 설명.', tags:['나가사키 대표','면요리','로컬 추천']},
+      {name:'짬뽕 우동', area:'쇼야', desc:'관광객들이 잘 모르는 로컬 메뉴로 추천. 짬뽕과 우동이 섞인 느낌으로 떡국 같은 부드러운 국물이라고 소개.', tags:['로컬 메뉴','체인 활용','숨은 추천']},
+      {name:'토루코 라이스', area:'나가사키 시내', desc:'스파게티·돈가스·필라프·함박 같은 요소가 합쳐진 나가사키식 양식 플레이트로 언급.', tags:['나가사키 양식','한 접시 메뉴']},
+      {name:'로그킷 사세보버거', area:'사세보역', desc:'사세보버거 중 가장 많이 먹었다고 한 추천 버거. 특히 사세보역점은 테이크아웃 접근성이 장점.', tags:['사세보버거','역근처','추천 버거']},
+      {name:'카야', area:'사세보', desc:'로컬들이 많이 가는 사세보버거집. 치킨 카츠레츠 버거가 특히 인상적이라고 소개.', tags:['사세보버거','로컬 인기','차 있으면 좋음']},
+      {name:'나가사키 카스테라', area:'나가사키 전역', desc:'단맛이 강한 지역 대표 디저트. 카스테라 쇼핑 자체가 여행 콘텐츠라고 설명.', tags:['디저트','쇼핑템','대표 특산']},
+      {name:'후쿠사야 / 세이후도 / 분메이도', area:'나가사키 시내', desc:'카스테라 비교 대상 중 상대적으로 추천 결이 있었던 브랜드들. 반대로 이진도·카스테라 푸딩은 비추천 뉘앙스.', tags:['카스테라 브랜드','기념품']},
+      {name:'칸고로모치', area:'나가사키 특산', desc:'카스테라를 안 사더라도 꼭 사는 로컬 푸드라고 직접 언급한 떡류 간식.', tags:['로컬 간식','기념품 강추']},
+      {name:'유센베이', area:'운젠', desc:'운젠 온천수로 반죽해 만드는 지역 명물 센베이. 바삭하지만 너무 딱딱하지 않은 점을 장점으로 소개.', tags:['운젠 명물','간식']}
+    ];
+
     function sourceKey(place){ return place.sources.length > 1 ? 'multi' : place.sources[0]; }
     function sourceLabel(place){ return place.sources.map(s => sourceMeta[s].label).join(' + '); }
     function chipHtml(s){ const m = sourceMeta[s]; return `<span class="chip ${m.cls}">${m.label}</span>`; }
@@ -210,6 +295,12 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
 
     const statusEl = document.getElementById('status');
+    const tabBtnFukuoka = document.getElementById('tab-btn-fukuoka');
+    const tabBtnNagasaki = document.getElementById('tab-btn-nagasaki');
+    const tabFukuokaSidebar = document.getElementById('tab-fukuoka-sidebar');
+    const tabNagasakiSidebar = document.getElementById('tab-nagasaki-sidebar');
+    const mainFukuoka = document.getElementById('main-fukuoka');
+    const mainNagasaki = document.getElementById('main-nagasaki');
     const detailName = document.getElementById('detail-name');
     const detailMeta = document.getElementById('detail-meta');
     const detailDesc = document.getElementById('detail-desc');
@@ -222,8 +313,34 @@
     const hotelOpen = document.getElementById('hotel-open');
     const hotelFocus = document.getElementById('hotel-focus');
 
+    function renderNagasakiGrid(elId, countId, items){
+      const el = document.getElementById(elId);
+      const countEl = document.getElementById(countId);
+      countEl.textContent = `${items.length}곳`;
+      el.innerHTML = items.map(item => `
+        <article class="naga-card">
+          <div class="mini">${item.area}</div>
+          <h3>${item.name}</h3>
+          <p>${item.desc}</p>
+          <div>${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+        </article>
+      `).join('');
+    }
+
+    function setActiveTab(tab){
+      const isFukuoka = tab === 'fukuoka';
+      tabBtnFukuoka.classList.toggle('active', isFukuoka);
+      tabBtnNagasaki.classList.toggle('active', !isFukuoka);
+      tabFukuokaSidebar.classList.toggle('hidden', !isFukuoka);
+      tabNagasakiSidebar.classList.toggle('hidden', isFukuoka);
+      mainFukuoka.classList.toggle('hidden', !isFukuoka);
+      mainNagasaki.classList.toggle('hidden', isFukuoka);
+    }
+
     hotelOpen.href = hotel.mapsUrl;
     hotelFocus.onclick = e => { e.preventDefault(); map.setView(hotel.loc, 16, {animate:true}); hotelMarker.openPopup(); };
+    tabBtnFukuoka.onclick = () => setActiveTab('fukuoka');
+    tabBtnNagasaki.onclick = () => setActiveTab('nagasaki');
 
     const markers = new Map();
     const cards = new Map();
@@ -379,6 +496,8 @@
     renderSection('section-video1', '강나미 맛집', groups.video1, '강나미 영상 열기', sourceMeta.video1.url, 'video1');
     renderSection('section-video2', '더들리 맛집', groups.video2, '더들리 영상 열기', sourceMeta.video2.url, 'video2');
     document.querySelector('#section-existing .actions').style.display='none';
+    renderNagasakiGrid('naga-go-grid', 'naga-go-count', nagasakiGo);
+    renderNagasakiGrid('naga-food-grid', 'naga-food-count', nagasakiFood);
 
     renderMarkers();
     gmapsFrame.src = hotel.embedUrl;
