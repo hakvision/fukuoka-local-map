@@ -106,7 +106,7 @@
         </div>
 
         <div id="food-sidebar-fukuoka" class="food-city-panel">
-          <div class="desc">기존 명물 맛집 + 강나미 영상 + 더들리 영상을 한 지도에 합쳤습니다. 오리엔탈 호텔을 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
+          <div class="desc">기존 명물 맛집 + 강나미 영상 + 더들리 영상을 한 지도에 합쳤습니다. 현재 텐진 숙소를 기준으로 거리/길찾기를 볼 수 있고, 출처마다 마커 색을 다르게 했습니다.</div>
           <div id="status" class="status">초기화 중…</div>
 
           <div class="legend">
@@ -118,9 +118,9 @@
           </div>
 
           <section class="hotel-box">
-            <h2>오리엔탈 호텔 후쿠오카 하카타 스테이션</h2>
+            <h2>호텔 오리엔탈 익스프레스 후쿠오카 텐진</h2>
             <div class="meta">기준 숙소 · 별표 마커</div>
-            <div class="summary">모든 맛집 거리는 이 호텔 기준입니다. 클릭한 가게마다 Google Maps 길찾기 링크를 넣어뒀습니다.</div>
+            <div class="summary">모든 맛집 거리와 길찾기는 이 텐진 숙소 기준으로 다시 계산됩니다. 클릭한 가게마다 Google Maps 길찾기 링크를 넣어뒀습니다.</div>
             <div class="actions">
               <a id="hotel-open" class="btn hotel" target="_blank" rel="noopener">Google Maps 열기</a>
               <a id="hotel-focus" class="btn secondary" href="#">호텔 위치 보기</a>
@@ -231,11 +231,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script>
     const hotel = {
-      name: '오리엔탈 호텔 후쿠오카 하카타 스테이션',
-      ja: 'Oriental Hotel Fukuoka Hakata Station',
-      loc: [33.5906166, 130.4219642],
-      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('Oriental Hotel Fukuoka Hakata Station'),
-      embedUrl: 'https://maps.google.com/maps?q=' + encodeURIComponent('Oriental Hotel Fukuoka Hakata Station') + '&z=16&output=embed'
+      name: '호텔 오리엔탈 익스프레스 후쿠오카 텐진',
+      ja: 'Hotel Oriental Express Fukuoka Tenjin',
+      loc: [33.5921749, 130.3968076],
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('Hotel Oriental Express Fukuoka Tenjin'),
+      embedUrl: 'https://maps.google.com/maps?q=' + encodeURIComponent('Hotel Oriental Express Fukuoka Tenjin') + '&z=16&output=embed'
     };
 
     const places = [
@@ -314,20 +314,20 @@
       '0610': {
         title:'6월 10일 · 도착일 야식 코스',
         meta:'20시 도착 → 21시 호텔 도착 가정',
-        summary:'도착일은 무리하지 않고 하카타역·나카스 인근 야식 위주로 움직이는 게 가장 효율적입니다. 체크인 후 바로 걸어서 이동 가능한 동선만 넣었습니다.',
+        summary:'도착일은 텐진 숙소 체크인 뒤 나카스·텐진 야식만 가볍게 넣는 편이 가장 효율적입니다. 첫날은 장거리 이동 없이 가까운 밤 코스만 남겼습니다.',
         tags:['늦은 도착','도보 위주','야식 중심'],
-        mapCenter:[33.5906,130.4219],
+        mapCenter:[33.5921749,130.3968076],
         zoom:14,
         mapNote:'호텔 기준 도보권 야식 후보를 보이도록 구성했습니다.',
         stops:[
-          {id:'d0610-1',time:'20:00',duration:'약 1시간',name:'후쿠오카 도착 → 호텔 이동',mini:'공항/역 도착 후',desc:'사용자 요청 기준으로 21시 전후 호텔 도착을 가정했습니다. 이 날은 장거리 이동 없이 체크인에 집중.',loc:[33.5906,130.4219],mapsQuery:'Oriental Hotel Fukuoka Hakata Station',type:'arrival'},
-          {id:'d0610-2',time:'21:10',duration:'20~30분',name:'호텔 체크인 + 짐 정리',mini:'오리엔탈 호텔',desc:'샤워·정리 후 야식으로 바로 나가기 좋게 20~30분 정도만 비워두는 구성입니다.',loc:[33.5906,130.4219],mapsQuery:'Oriental Hotel Fukuoka Hakata Station',type:'hotel'},
-          {id:'d0610-3',time:'21:40',duration:'60~90분',name:'야식 1차',mini:'하카타역/나카스 후보 중 선택',desc:'시간상 줄이 너무 긴 집보다는 바로 들어갈 수 있는 라멘·야타이 계열이 유리합니다.',loc:[33.5907,130.4047],mapsQuery:'Nakasu Fukuoka yatai',type:'food'},
+          {id:'d0610-1',time:'20:00',duration:'약 1시간',name:'후쿠오카 도착 → 호텔 이동',mini:'공항/역 도착 후',desc:'사용자 요청 기준으로 21시 전후 텐진 숙소 도착을 가정했습니다. 이 날은 장거리 이동 없이 체크인에 집중.',loc:[33.5921749,130.3968076],mapsQuery:'Hotel Oriental Express Fukuoka Tenjin',type:'arrival'},
+          {id:'d0610-2',time:'21:10',duration:'20~30분',name:'호텔 체크인 + 짐 정리',mini:'텐진 숙소',desc:'샤워·정리 후 야식으로 바로 나가기 좋게 20~30분 정도만 비워두는 구성입니다.',loc:[33.5921749,130.3968076],mapsQuery:'Hotel Oriental Express Fukuoka Tenjin',type:'hotel'},
+          {id:'d0610-3',time:'21:40',duration:'60~90분',name:'야식 1차',mini:'텐진/나카스 후보 중 선택',desc:'시간상 줄이 너무 긴 집보다는 바로 들어갈 수 있는 라멘·야타이 계열이 유리합니다.',loc:[33.5907,130.4047],mapsQuery:'Nakasu Fukuoka yatai',type:'food'},
           {id:'d0610-4',time:'23:10',duration:'20분',name:'나카스 강변 산책 or 바로 복귀',mini:'컨디션 따라 선택',desc:'첫날은 무리하지 않는 게 핵심이라, 배부르면 바로 귀가하는 구성이 좋습니다.',loc:[33.5908,130.4044],mapsQuery:'Nakasu Fukuoka',type:'walk'}
         ],
         candidates:[
           {title:'야식 후보 A · 이치란 본점/총본점', bullets:['늦은 시간 접근성이 좋고 실패 확률이 낮음','도착일 피로도가 높을 때 가장 안전한 선택','호텔 기준 택시/도보+지하철 모두 쉬움']},
-          {title:'야식 후보 B · 하카타야 하카타 라멘', bullets:['가성비가 강점이라 가볍게 1차로 좋음','하카타역 쪽 동선이라 첫날 부담이 적음','짧게 먹고 들어오기 좋은 타입']},
+          {title:'야식 후보 B · 하카타야 하카타 라멘', bullets:['가성비가 강점이라 가볍게 1차로 좋음','텐진 숙소에서 택시나 짧은 이동으로 해결 가능','짧게 먹고 들어오기 좋은 타입']},
           {title:'야식 후보 C · 나카스 야타이 / 타케짱 야타이', bullets:['후쿠오카 첫날 감성값이 가장 좋은 선택','대기·날씨 변수는 있음','늦게까지 분위기 즐기고 싶으면 우선 추천']}
         ]
       },
@@ -340,7 +340,7 @@
         zoom:13,
         mapNote:'평화공원 → 중화거리/데지마 → 그라버원 → 하마노마치 → 이나사야마 순으로 왕복을 줄인 최적 동선입니다.',
         stops:[
-          {id:'d0611-1',time:'06:30',duration:'30분',name:'호텔 출발 → 하카타 버스터미널',mini:'도보/택시',desc:'일찍 움직여야 나가사키 체류 시간을 최대화할 수 있습니다.',loc:[33.5906,130.4219],mapFocusLoc:[32.7503,129.8777],mapHidden:true,mapsQuery:'Hakata Bus Terminal',type:'bus'},
+          {id:'d0611-1',time:'06:30',duration:'20분',name:'호텔 출발 → 니시테츠 텐진 고속버스터미널',mini:'도보권 우선',desc:'숙소가 텐진이라 하카타보다 니시테츠 텐진 고속버스터미널 출발이 훨씬 효율적입니다.',loc:[33.5921749,130.3968076],mapFocusLoc:[32.7503,129.8777],mapHidden:true,mapsQuery:'Nishitetsu Tenjin Expressway Bus Terminal',type:'bus'},
           {id:'d0611-2',time:'07:20',duration:'약 2시간 10분',name:'후쿠오카 → 나가사키 고속버스(큐슈호)',mini:'공식 소요시간 2시간 7분 기준',desc:'서철 공식 페이지 기준 후쿠오카(텐진)~나가사키역앞 최속 2시간 7분, 예약제입니다.',loc:[32.7503,129.8777],mapsQuery:'Nagasaki Station',type:'bus'},
           {id:'d0611-3',time:'09:50',duration:'50분',name:'평화공원 + 우라카미 천주당',mini:'오전 역사 코스',desc:'히제이 영상에서 먼저 소개된 핵심 역사 구역. 두 곳이 가깝게 붙어 있어 오전 효율이 좋습니다.',loc:[32.7796,129.8655],mapsQuery:'Nagasaki Peace Park',type:'sight'},
           {id:'d0611-4',time:'11:30',duration:'60~75분',name:'데지마 와프 or 중화거리 점심',mini:'사라우동/짬뽕 후보',desc:'점심은 나가사키 대표 메뉴로 해결. 사라우동을 우선 후보로 두는 구성이 좋습니다.',loc:[32.7417,129.8718],mapsQuery:'Dejima Wharf Nagasaki',type:'food'},
@@ -350,8 +350,8 @@
           {id:'d0611-8',time:'20:30',duration:'약 2시간 10분',name:'나가사키 → 후쿠오카 복귀 버스',mini:'늦은편 후보 예약',desc:'당일 막차 감각으로 잡지 말고 여유 있는 시간대 좌석을 미리 잡는 것이 안전합니다.',loc:[32.7503,129.8777],mapsQuery:'Nagasaki Station',type:'bus'}
         ],
         candidates:[
-          {title:'버스 후보 1 · 하카타 버스터미널 출발 스퍼논스톱', bullets:['서철 공식 「큐슈호」 노선 페이지 기준 존재','주요 하차는 대파지(오하토)·나가사키역앞 계열','공식 페이지 기준 예약제, 후쿠오카(텐진)~나가사키역앞 최속 2시간 7분, 편도 2,900엔']},
-          {title:'버스 후보 2 · 니시테츠 텐진 고속버스터미널 출발', bullets:['호텔에서 바로 텐진으로 갈 계획이면 이쪽도 선택지','공식 페이지 기준 월~목 37왕복, 금토일공휴일 46왕복','나가사키역앞까지 바로 가는 장점이 큼']},
+          {title:'버스 후보 1 · 니시테츠 텐진 고속버스터미널 출발', bullets:['새 숙소 기준 가장 편한 출발지','공식 페이지 기준 월~목 37왕복, 금토일공휴일 46왕복','나가사키역앞까지 바로 가는 장점이 큼']},
+          {title:'버스 후보 2 · 하카타 버스터미널 출발 스퍼논스톱', bullets:['서철 공식 「큐슈호」 노선 페이지 기준 존재','주요 하차는 대파지(오하토)·나가사키역앞 계열','텐진 숙소 기준으로는 우선순위가 한 단계 내려감']},
           {title:'버스 후보 3 · 공항 경유 각정편', bullets:['서철 페이지에 후쿠오카공항 국제선 경유편도 표시됨','이번 여행은 이미 후쿠오카 시내 숙박이라 우선순위는 낮음','항공 일정과 바로 붙이는 경우에만 고려하면 됨']},
           {title:'당일 코스 선택 포인트', bullets:['사세보·운젠까지 넣으면 버스 당일치기 품질이 급격히 떨어짐','이번 6/11은 나가사키 시내 집중이 가장 현실적','야경을 넣으면 정말 예쁘지만, 피곤하면 이나사야마를 빼고 1시간 일찍 복귀하는 플랜B 권장']}
         ]
@@ -374,7 +374,7 @@
           {id:'d0612-7',time:'19:00',duration:'90분',name:'나카스 야타이 / 강변 야식',mini:'후쿠오카 밤 감성',desc:'후쿠오카 첫 풀데이 밤은 나카스 감성으로 마무리하는 편이 좋습니다.',loc:[33.5907,130.4047],mapsQuery:'Nakasu Yatai Fukuoka',type:'food'}
         ],
         candidates:[
-          {title:'점심 후보', bullets:['캐널시티 라멘 스타디움에서 가볍게 해결','하카타역 1번가로 복귀해서 현지식 먹기','호텔 근처 키와미야/스시사카바를 점심으로 당겨 쓰기']},
+          {title:'점심 후보', bullets:['캐널시티 라멘 스타디움에서 가볍게 해결','하카타역 1번가로 복귀해서 현지식 먹기','텐진 복귀 후 모츠나베 타슈/야키토리 마코 같은 텐진권 식당으로 이어가기']},
           {title:'저녁 후보', bullets:['나카스 야타이 감성 우선','조용한 식사를 원하면 텐진 쪽 야키토리 마코/나가라쿠도 계열 고려','술 없는 식사 위주면 이치란/하카타 잇소로 단순화 가능']}
         ]
       },
